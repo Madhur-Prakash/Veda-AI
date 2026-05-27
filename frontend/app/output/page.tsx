@@ -30,7 +30,8 @@ export default function OutputPage() {
     if (!assignmentId) return;
 
     const token = localStorage.getItem('accessToken');
-    const url = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/assignments/${assignmentId}/export/pdf`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || '/api/v1';
+    const url = `${baseUrl}/assignments/${assignmentId}/export/pdf`;
 
     setIsDownloading(true);
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
