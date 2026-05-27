@@ -4,7 +4,7 @@ import { AssignmentVersionModel } from '@/models/version.model.js';
 import { GenerationJobModel } from '@/models/job.model.js';
 import { buildPrompt } from '@/services/promptBuilder.js';
 import { GroqAiProvider } from '@/services/aiProvider.js';
-import { generatePdfBuffer } from '@/services/pdfService.js';
+import { generatePdfBuffer } from './pdfService.js';
 import { assignmentsQueue } from '@/queues/assignment.queue.js';
 import { createId } from '@/utils/id.js';
 import type { AssignmentCreateInput, GeneratedAssessment } from '@/types.js';
@@ -142,6 +142,7 @@ export class AssignmentService {
 
     return generatePdfBuffer(assignment.generatedAssessment as GeneratedAssessment, {
       title: assignment.title,
+      school: assignment.schoolName || 'Delhi Public School, Sector-4, Bokaro',
       subject: assignment.subject,
       className: assignment.className,
       duration: assignment.durationMinutes,

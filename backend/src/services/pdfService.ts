@@ -1,10 +1,10 @@
 import PDFDocument from 'pdfkit';
 import type { GeneratedAssessment } from '@/types.js';
 
-const DIFF_COLOR: Record<string, string> = {
-  Easy: '#16a34a',
-  Medium: '#d97706',
-  Hard: '#dc2626'
+const DIFF_LABEL: Record<string, string> = {
+  Easy: 'Easy',
+  Medium: 'Moderate',
+  Hard: 'Challenging'
 };
 
 export function generatePdfBuffer(
@@ -19,101 +19,66 @@ export function generatePdfBuffer(
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    const pageW = 595 - 120; // A4 width minus margins
+    const schoolName = meta?.school ?? 'Delhi Public School, Sector-4, Bokaro';
 
-    // School name
-    if (meta?.school) {
-      doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000').text(meta.school, { align: 'center' });
-      doc.moveDown(0.3);
-    }
+    doc.fontSize(14).font('Helvetica-Bold').fillColor('#1a1a1a').text(schoolName, { align: 'center' });
+    doc.moveDown(0.2);
+    doc.fontSize(16).font('Helvetica-Bold').fillColor('#1a1a1a').text('Question Paper', { align: 'center' });
+    doc.moveDown(0.5);
 
-    // Title
-    doc.fontSize(18).font('Helvetica-Bold').text(meta?.title ?? 'Assessment', { align: 'center' });
-    doc.moveDown(0.3);
-    if (meta?.subject) doc.fontSize(12).font('Helvetica').text(`Subject: ${meta.subject}`, { align: 'center' });
-    if (meta?.className) doc.fontSize(12).text(`Class: ${meta.className}`, { align: 'center' });
+    if (meta?.subject) doc.fontSize(12).font('Helvetica-Bold').fillColor('#1a1a1a').text(`Subject: ${meta.subject}`, { align: 'center' });
+    if (meta?.className) doc.fontSize(12).font('Helvetica-Bold').fillColor('#1a1a1a').text(`Class: ${meta.className}`, { align: 'center' });
 
-    doc.moveDown(0.8);
+    doc.moveDown(0.5);
 
-    // Time / Marks row
-    if (meta?.duration ?? meta?.totalMarks) {
-      const y = doc.y;
-      doc.fontSize(11).font('Helvetica');
-      if (meta?.duration) doc.text(`Time: ${meta.duration} min`, 60, y);
-      if (meta?.totalMarks) doc.text(`Max Marks: ${meta.totalMarks}`, 60, y, { align: 'right', width: pageW });
-      doc.moveDown(0.8);
-    }
-
-    // Divider
-    doc.moveTo(60, doc.y).lineTo(535, doc.y).strokeColor('#cccccc').lineWidth(0.5).stroke();
-    doc.moveDown(0.8);
-
-    // Student info
-    doc.fontSize(11).font('Helvetica').fillColor('#000000');
-    doc.text('Name: ___________________________     Roll No: _______________     Section: ________');
-    doc.moveDown(1.5);
-
-    // Sections
-    for (const [si, section] of assessment.sections.entries()) {
-      // Section gap (extra space before all sections except the first)
-      if (si > 0) doc.moveDown(1.5);
-
-      // Section divider line
-      doc.moveTo(60, doc.y).lineTo(535, doc.y).strokeColor('#aaaaaa').lineWidth(0.5).stroke();
-      doc.moveDown(0.6);
-
-      doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text(section.title, { align: 'center' });
-      doc.moveDown(0.4);
-
-      if (section.instruction) {
-        doc.fontSize(10).font('Helvetica-Oblique').fillColor('#555555').text(section.instruction, { align: 'center' });
-        doc.fillColor('#000000');
-      }
-      doc.moveDown(0.8);
-
-      for (const [qi, q] of section.questions.entries()) {
-        const diffColor = DIFF_COLOR[q.difficulty] ?? '#555555';
-
-        doc.fontSize(11).font('Helvetica-Bold').fillColor('#000000').text(`Q${qi + 1}. `, { continued: true });
-        doc.font('Helvetica').text(q.question);
-        doc.moveDown(0.25);
-
-        doc.fontSize(9).font('Helvetica').fillColor(diffColor).text(`[${q.difficulty}]`, { continued: true });
-        doc.fillColor('#444444').text(`    (${q.marks} Mark${q.marks > 1 ? 's' : ''})   ${q.blooms_level ? `• ${q.blooms_level}` : ''}`);
-        doc.fillColor('#000000');
-        doc.moveDown(0.7);
-      }
-    }
-
-    // End marker
-    doc.moveDown(1.2);
-    doc.moveTo(60, doc.y).lineTo(535, doc.y).strokeColor('#cccccc').lineWidth(0.5).stroke();
-    doc.moveDown(0.8);
-    doc.fontSize(10).font('Helvetica-Oblique').fillColor('#888888').text('— End of Question Paper —', { align: 'center' });
-
-    // Answer Key (new page)
-    doc.addPage();
-    doc.fillColor('#000000');
-    doc.fontSize(16).font('Helvetica-Bold').text('Answer Key', { align: 'center' });
+    doc.fontSize(11).font('Helvetica-Bold').fillColor('#1a1a1a');
+    if (meta?.duration) doc.text(`Time Allowed: ${meta.duration} minutes`);
+    if (meta?.totalMarks) doc.text(`Maximum Marks: ${meta.totalMarks}`);
     doc.moveDown(0.4);
-    doc.fontSize(10).font('Helvetica').fillColor('#555555').text(`${meta?.title ?? 'Assessment'} — ${meta?.subject ?? ''}, Class ${meta?.className ?? ''}`, { align: 'center' });
-    doc.fillColor('#000000');
-    doc.moveDown(0.8);
-    doc.moveTo(60, doc.y).lineTo(535, doc.y).strokeColor('#cccccc').lineWidth(0.5).stroke();
+
+    doc.fontSize(11).font('Helvetica-Bold').fillColor('#1a1a1a').text('All questions are compulsory unless stated otherwise.');
+    doc.moveDown(0.6);
+    doc.text('Name: __________________');
+    doc.text('Roll Number: ______________');
+    doc.text(`Class: ${meta?.className ?? ''} Section: ________`);
     doc.moveDown(0.8);
 
-    let qNum = 1;
+    function getSectionHeader(title: string, index: number) {
+      const match = title.match(/^Section\s+([A-Z0-9]+)\s*[–-]\s*(.+)$/i);
+      if (match) {
+        const sectionCode = match[1] ?? String.fromCharCode(65 + index);
+        const sectionTitle = match[2] ?? title.trim();
+        return {
+          label: `Section ${sectionCode.toUpperCase()}`,
+          subtitle: sectionTitle.trim()
+        };
+      }
+
+      return {
+        label: `Section ${String.fromCharCode(65 + index)}`,
+        subtitle: title.trim()
+      };
+    }
+
     for (const [si, section] of assessment.sections.entries()) {
       if (si > 0) doc.moveDown(1.2);
 
-      doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000').text(section.title);
-      doc.moveDown(0.5);
+      const header = getSectionHeader(section.title, si);
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('#1a1a1a').text(header.label, { align: 'center' });
+      doc.moveDown(0.15);
 
-      for (const q of section.questions) {
-        doc.fontSize(10).font('Helvetica-Bold').fillColor('#cc4400').text(`Q${qNum}. `, { continued: true });
-        doc.font('Helvetica').fillColor('#000000').text(q.answer_key ?? '—');
-        doc.moveDown(0.5);
-        qNum++;
+      if (section.instruction) {
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a1a').text(section.instruction, { align: 'center' });
+        doc.moveDown(0.3);
+      }
+
+      for (const [qi, q] of section.questions.entries()) {
+        const diffLabel = DIFF_LABEL[q.difficulty] ?? q.difficulty;
+        doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#1a1a1a').text(`${qi + 1}. `, { continued: true });
+        doc.font('Helvetica-Bold').text(`[${diffLabel}] `, { continued: true });
+        doc.font('Helvetica').text(q.question, { continued: true });
+        doc.font('Helvetica-Bold').text(` [${q.marks} ${q.marks === 1 ? 'Mark' : 'Marks'}]`);
+        doc.moveDown(0.45);
       }
     }
 

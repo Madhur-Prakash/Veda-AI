@@ -144,9 +144,6 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
   console.log('a:', a);
   console.log('Current assessment:', currentAssessment);
 
-  /* ── school name derived from title or fallback ── */
-  const schoolName = a.schoolName ?? "Delhi Public School, Sector-4, Bokaro";
-
   return (
     <Shell title={a.title} titleIcon={FileText}>
       <div className="mx-auto w-full max-w-[900px] px-2 pb-12 md:px-0">
@@ -223,7 +220,7 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
           {/* ── Paper Header ── */}
           <header className="border-b-2 border-[#1a1a1a] pb-4 text-center">
             <h1 className="text-[24px] font-extrabold leading-tight tracking-tight text-[#1a1a1a] md:text-[28px]">
-              {schoolName}
+              {a.schoolName ?? 'Delhi Public School, Sector-4, Bokaro'}
             </h1>
             <p className="mt-1 text-[16px] font-bold text-[#1a1a1a] md:text-[18px]">
               Subject: {a.subject}
