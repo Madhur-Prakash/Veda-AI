@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Bot, CheckCircle, XCircle, RefreshCw, FileText } from 'lucide-react';
 import { Shell } from '@/components/shell';
 import { useGenerationStore } from '@/store/generationStore';
+import { useAssignmentStore } from '@/store/assignmentStore';
 import { useSocket } from '@/hooks/useSocket';
 
 const STEPS = [
@@ -20,17 +21,18 @@ const STEPS = [
 function GenerationStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const assignmentId = searchParams.get('id') ?? '';
+  const assignmentId = searchParams?.get('id') ?? '';
+  const [isRetrying, setIsRetrying] = useState(false);
 
-  const { status, progress, message, completedAssignment, error, reset, setQueued, assignmentId: trackingId } = useGenerationStore();
+  const { status, progress, message, completedAssignment, error, setQueued, assignmentId: trackingId } = useGenerationStore();
+  const { regenerate } = useAssignmentStore();
 
   useSocket(assignmentId);
 
   useEffect(() => {
     if (!assignmentId) return;
     // Reset and re-queue if the store is tracking a different assignment or is idle
-    if (status === 'idle' || trackingId !== assignmentId) {
-      if (trackingId !== assignmentId) reset();
+      if (status === 'idle' || trackingId !== assignmentId) {
       setQueued(assignmentId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -45,6 +47,18 @@ function GenerationStatusContent() {
       return () => clearTimeout(timer);
     }
   }, [status, completedAssignment, router, assignmentId]);
+
+  async function handleRetry() {
+    if (!assignmentId || isRetrying) return;
+
+    setIsRetrying(true);
+    try {
+      await regenerate(assignmentId);
+      setQueued(assignmentId, `generation:${assignmentId}:retry`);
+    } finally {
+      setIsRetrying(false);
+    }
+  }
 
   const activeStep = STEPS.filter((s) => progress >= s.threshold).length - 1;
 
@@ -84,10 +98,12 @@ function GenerationStatusContent() {
               </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => { reset(); router.push(`/create-assignment`); }}
-                  className="flex items-center gap-2 rounded-full border border-neutral-300 px-5 py-2.5 text-[14px] font-semibold text-neutral-700 hover:bg-neutral-50"
+                  onClick={handleRetry}
+                  disabled={isRetrying}
+                  className="flex items-center gap-2 rounded-full border border-neutral-300 px-5 py-2.5 text-[14px] font-semibold text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <RefreshCw className="h-4 w-4" /> Try Again
+                  <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
+                  {isRetrying ? 'Retrying…' : 'Try Again'}
                 </button>
               </div>
             </div>
