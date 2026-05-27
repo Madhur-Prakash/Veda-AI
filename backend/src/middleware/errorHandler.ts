@@ -8,11 +8,24 @@ export function notFoundHandler(req: Request, _res: Response, next: NextFunction
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
   const statusCode = err instanceof HttpError ? err.statusCode : 500;
   const message = err instanceof Error ? err.message : 'Internal server error';
+  const details = err instanceof HttpError ? err.details : undefined;
 
-  res.status(statusCode).json({
+  const payload: {
+    error: {
+      message: string;
+      statusCode: number;
+      details?: Record<string, unknown>;
+    };
+  } = {
     error: {
       message,
       statusCode
     }
-  });
+  };
+
+  if (details) {
+    payload.error.details = details;
+  }
+
+  res.status(statusCode).json(payload);
 }

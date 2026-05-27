@@ -58,7 +58,7 @@ function QuestionCard({ q, index, showAnswer }: { q: GenerationQuestion; index: 
 export default function AssessmentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { currentAssignment, fetchAssignment, isLoading, regenerate } = useAssignmentStore();
+  const { currentAssignment, fetchAssignment, isLoading, regenerate, error } = useAssignmentStore();
   const { setQueued } = useGenerationStore();
   const [copyDone, setCopyDone] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -93,6 +93,8 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
       const result = await regenerate(id);
       setQueued(id, `generation:${id}:${result.jobId}`);
       router.push(`/generation-status?id=${id}`);
+    } catch {
+      return;
     } finally {
       setIsRegenerating(false);
     }
@@ -179,6 +181,11 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
               Regenerate
             </button>
           </div>
+          {error && (
+            <div className="mt-4 max-w-3xl rounded-[18px] border border-red-300 bg-red-500/10 px-4 py-3 text-[14px] text-red-100" role="alert" aria-live="polite">
+              {error}
+            </div>
+          )}
         </section>
 
         {/* Question paper */}

@@ -4,6 +4,37 @@ import { create } from 'zustand';
 import type { Assignment, AssignmentCreatePayload, DashboardSummary } from '@/types';
 import { assignmentApi } from '@/lib/api';
 
+function getApiErrorMessage(err: unknown, fallback: string) {
+  const errorResponse = err as {
+    response?: {
+      status?: number;
+      data?: {
+        error?: {
+          message?: string;
+          details?: {
+            retryAfterSeconds?: number;
+          };
+        };
+      };
+    };
+  };
+
+  const apiError = errorResponse.response?.data?.error;
+  if (!apiError?.message) {
+    return fallback;
+  }
+
+  if (errorResponse.response?.status === 429) {
+    const retryAfterSeconds = apiError.details?.retryAfterSeconds;
+    if (retryAfterSeconds) {
+      const retryMinutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+      return `${apiError.message} Please try again in ${retryMinutes === 1 ? '1 minute' : `${retryMinutes} minutes`}.`;
+    }
+  }
+
+  return apiError.message;
+}
+
 interface AssignmentState {
   assignments: Assignment[];
   currentAssignment: Assignment | null;
@@ -53,15 +84,21 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
       set((s) => ({ assignments: [assignment, ...s.assignments], currentAssignment: assignment, isLoading: false }));
       return assignment;
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ?? 'Failed to create assignment';
+      const message = getApiErrorMessage(err, 'Failed to create assignment');
       set({ error: message, isLoading: false });
       throw err;
     }
   },
 
   regenerate: async (id, notes) => {
-    const { data } = await assignmentApi.regenerate(id, notes);
-    return data.data;
+    set({ error: null });
+    try {
+      const { data } = await assignmentApi.regenerate(id, notes);
+      return data.data;
+    } catch (err) {
+      set({ error: getApiErrorMessage(err, 'Failed to regenerate assignment') });
+      throw err;
+    }
   },
 
   fetchDashboard: async () => {

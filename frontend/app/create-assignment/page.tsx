@@ -65,7 +65,7 @@ function Stepper({ value, onDecrease, onIncrease }: { value: number; onDecrease:
 
 export default function CreateAssignmentPage() {
   const router = useRouter();
-  const { createAssignment } = useAssignmentStore();
+  const { createAssignment, error } = useAssignmentStore();
   const { setQueued } = useGenerationStore();
 
   const [form, setForm] = useState({
@@ -359,7 +359,12 @@ export default function CreateAssignmentPage() {
           </div>
         </section>
 
-        <div className="mt-6 flex items-center justify-end px-1">
+        <div className="mt-6 flex items-center justify-end gap-4 px-1">
+          {error && (
+            <div className="max-w-[540px] rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700" role="alert" aria-live="polite">
+              {error}
+            </div>
+          )}
           <Button
             type="submit"
             disabled={isSubmitting}
