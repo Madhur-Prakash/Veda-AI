@@ -28,13 +28,34 @@ function getFailureMessage(error: string | null) {
   return error;
 }
 
+function getRetryErrorMessage(error: unknown) {
+  const candidate = error as {
+    response?: {
+      status?: number;
+      data?: {
+        error?: {
+          message?: string;
+        };
+      };
+    };
+    message?: string;
+  };
+
+  const apiMessage = candidate.response?.data?.error?.message ?? candidate.message ?? '';
+  if (candidate.response?.status === 429 || /\brate limit\b|too many requests/i.test(apiMessage)) {
+    return 'Groq rate limit reached. Please wait a moment and try again.';
+  }
+
+  return apiMessage || 'Failed to regenerate assignment';
+}
+
 function GenerationStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const assignmentId = searchParams?.get('id') ?? '';
   const [isRetrying, setIsRetrying] = useState(false);
 
-  const { status, progress, message, completedAssignment, error, setQueued, assignmentId: trackingId } = useGenerationStore();
+  const { status, progress, message, completedAssignment, error, setQueued, setFailed, assignmentId: trackingId } = useGenerationStore();
   const { regenerate } = useAssignmentStore();
 
   useSocket(assignmentId);
@@ -65,6 +86,8 @@ function GenerationStatusContent() {
     try {
       await regenerate(assignmentId);
       setQueued(assignmentId, `generation:${assignmentId}:retry`);
+    } catch (err) {
+      setFailed(getRetryErrorMessage(err));
     } finally {
       setIsRetrying(false);
     }
