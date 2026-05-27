@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   skipTrailingSlashRedirect: true,
+  devIndicators: false,
   async rewrites() {
     const backendApiUrl = (process.env.BACKEND_API_URL ?? 'http://localhost:4000').replace(/\/$/, '');
 
