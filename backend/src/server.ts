@@ -16,8 +16,13 @@ import '@/workers/assignment.worker.js';
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = (env.CLIENT_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(helmet());
-app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true }));
+app.use(cors({ origin: allowedOrigins.length > 0 ? allowedOrigins : env.CLIENT_ORIGIN, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
