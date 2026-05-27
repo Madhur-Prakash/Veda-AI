@@ -31,7 +31,7 @@ import {
 export const apiRouter = Router();
 const generationRateLimit = createRateLimitMiddleware({
   keyPrefix: 'groq:generation',
-  limit: 5, // allow 5 generation requests per window per user/IP
+  limit: 10, // allow 10 generation requests per window per user/IP
   windowMs: 10 * 60 * 1000, // 10 minutes
   message: 'Too many assessment generation requests.'
 });
