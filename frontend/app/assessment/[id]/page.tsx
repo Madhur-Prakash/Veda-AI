@@ -261,18 +261,21 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
             <section key={si} className="mt-10">
 
               {/* Section heading */}
-              <div className="mb-3 text-center">
-                <h2 className="text-[17px] font-extrabold uppercase tracking-widest text-[#1a1a1a] md:text-[19px]">
+              <div className="mb-5">
+                <h2 className="mb-5 text-center text-[17px] font-extrabold uppercase tracking-widest text-[#1a1a1a] md:text-[19px]">
                   {section.title}
                 </h2>
+
                 {section.instruction && (
-                  <p className="mt-0.5 text-[14px] font-bold text-[#1a1a1a]">
+                  <p className="text-[14px] font-bold text-[#1a1a1a]">
                     {section.instruction}
                   </p>
                 )}
+
                 {section.questions && (
-                  <p className="mt-0.5 text-[13px] font-semibold italic text-neutral-600">
-                    Each question carries {section.questions[0]?.marks ?? 1} mark{section.questions[0]?.marks !== 1 ? 's' : ''}.
+                  <p className="mt-1 text-[14px] italic text-[#1a1a1a]">
+                    Each question carries {section.questions[0]?.marks ?? 1} mark
+                    {section.questions[0]?.marks !== 1 ? "s" : ""}.
                   </p>
                 )}
               </div>
