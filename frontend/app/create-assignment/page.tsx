@@ -330,7 +330,8 @@ export default function CreateAssignmentPage() {
 
             {/* Question Type Configuration */}
             <div className="mt-8">
-              <div className="mb-3 grid grid-cols-[1fr_100px_100px_40px] gap-3 text-[13px] font-semibold text-neutral-500 px-1">
+              {/* Desktop header row */}
+              <div className="mb-3 hidden grid-cols-[1fr_100px_100px_44px] gap-3 px-1 text-[13px] font-semibold text-neutral-500 md:grid">
                 <span>Question Type</span>
                 <span className="text-center">Questions</span>
                 <span className="text-center">Marks each</span>
@@ -340,7 +341,37 @@ export default function CreateAssignmentPage() {
               <div className="space-y-3">
                 {controls.map((ctrl, i) => (
                   <div key={i}>
-                    <div className="grid grid-cols-[1fr_100px_100px_40px] items-center gap-3">
+                    {/* Mobile card layout */}
+                    <div className="rounded-[18px] border border-neutral-100 bg-[#f8f8f8] p-3 md:hidden">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={ctrl.type}
+                          onChange={(e) => updateControl(i, 'type', e.target.value as QuestionType)}
+                          className="h-10 flex-1 rounded-full border border-[#e5e5e5] bg-white px-4 text-[14px] outline-none focus:border-[#ff6a2b]"
+                        >
+                          {QUESTION_TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                        <button type="button" onClick={() => removeControl(i)} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-neutral-200 text-neutral-500 hover:bg-red-50 hover:text-red-500" aria-label="Remove">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="mb-1.5 text-[11px] font-semibold text-neutral-400">Questions</p>
+                          <Stepper value={ctrl.count} onDecrease={() => updateControl(i, 'count', Math.max(1, ctrl.count - 1))} onIncrease={() => updateControl(i, 'count', ctrl.count + 1)} />
+                        </div>
+                        <div>
+                          <p className="mb-1.5 text-[11px] font-semibold text-neutral-400">Marks each</p>
+                          <Stepper value={ctrl.marks} onDecrease={() => updateControl(i, 'marks', Math.max(1, ctrl.marks - 1))} onIncrease={() => updateControl(i, 'marks', ctrl.marks + 1)} />
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => setExpandedControl(expandedControl === i ? null : i)} className="mt-2 text-[12px] font-medium text-[#ff6a2b]">
+                        {expandedControl === i ? '▲ Hide difficulty' : '% Set difficulty'}
+                      </button>
+                    </div>
+
+                    {/* Desktop row layout */}
+                    <div className="hidden md:grid md:grid-cols-[1fr_100px_100px_44px] md:items-center md:gap-3">
                       <select
                         value={ctrl.type}
                         onChange={(e) => updateControl(i, 'type', e.target.value as QuestionType)}
@@ -413,7 +444,7 @@ export default function CreateAssignmentPage() {
           </div>
         </section>
 
-        <div className="mt-6 flex items-center justify-end gap-4 px-1">
+        <div className="mt-6 flex flex-col-reverse items-stretch gap-3 px-1 sm:flex-row sm:items-center sm:justify-end">
           {error && (
             <div className="max-w-[540px] rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700" role="alert" aria-live="polite">
               {error}
@@ -422,7 +453,7 @@ export default function CreateAssignmentPage() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-12 px-8 text-[15px] font-semibold disabled:opacity-60"
+            className="h-12 w-full px-8 text-[15px] font-semibold disabled:opacity-60 sm:w-auto"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">

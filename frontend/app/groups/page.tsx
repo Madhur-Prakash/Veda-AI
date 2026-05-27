@@ -393,24 +393,26 @@ function GroupDetail({
       <div className="rounded-[24px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
         <h3 className="mb-1 text-[16px] font-semibold text-[#1f1f1f]">Group Invite Code</h3>
         <p className="mb-4 text-[13px] text-neutral-500">Share this code with students so they can reference this group.</p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1 rounded-[16px] border border-neutral-200 bg-[#fafafa] px-5 py-3">
-            <span className="text-[22px] font-bold tracking-widest text-[#1f1f1f]">{inviteCode}</span>
+            <span className="text-[20px] font-bold tracking-widest text-[#1f1f1f] sm:text-[22px]">{inviteCode}</span>
           </div>
-          <button
-            onClick={copyInvite}
-            className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-4 py-3 text-[13px] font-semibold text-neutral-600 hover:border-[#ff6a2b] hover:text-[#ff6a2b] transition"
-          >
-            {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
-            {copied ? 'Copied!' : 'Copy'}
-          </button>
-          <button
-            onClick={handleRefreshInvite}
-            disabled={refreshing}
-            className="rounded-full border border-neutral-200 px-4 py-3 text-[13px] font-medium text-neutral-500 hover:bg-neutral-50 disabled:opacity-50 transition"
-          >
-            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={copyInvite}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-neutral-200 px-4 py-3 text-[13px] font-semibold text-neutral-600 hover:border-[#ff6a2b] hover:text-[#ff6a2b] transition sm:flex-none"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+            <button
+              onClick={handleRefreshInvite}
+              disabled={refreshing}
+              className="flex flex-1 items-center justify-center rounded-full border border-neutral-200 px-4 py-3 text-[13px] font-medium text-neutral-500 hover:bg-neutral-50 disabled:opacity-50 transition sm:flex-none"
+            >
+              {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -477,16 +479,16 @@ export default function GroupsPage() {
     <Shell title="My Groups" titleIcon={School2}>
       <div className="mx-auto max-w-[1100px] pb-10">
         {/* Header row */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-[24px] font-bold text-[#1f1f1f]">My Groups</h1>
-            <p className="text-[14px] text-neutral-500">Organise students into class groups, assign papers, and track activity.</p>
+        <div className="mb-6 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-[22px] font-bold text-[#1f1f1f] sm:text-[24px]">My Groups</h1>
+            <p className="text-[13px] text-neutral-500 sm:text-[14px]">Organise students into class groups, assign papers, and track activity.</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 rounded-full bg-[#1f1f1f] px-5 py-2.5 text-[14px] font-semibold text-white transition hover:bg-black"
+            className="shrink-0 flex items-center gap-2 rounded-full bg-[#1f1f1f] px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-black sm:px-5 sm:text-[14px]"
           >
-            <Plus className="h-4 w-4" /> New Group
+            <Plus className="h-4 w-4" /> <span className="hidden xs:inline">New </span>Group
           </button>
         </div>
 
@@ -546,7 +548,7 @@ export default function GroupsPage() {
                             <div className="relative" ref={menuOpenFor === g.externalId ? menuRef : undefined}>
                               <button
                                 onClick={() => setMenuOpenFor(menuOpenFor === g.externalId ? null : g.externalId)}
-                                className="opacity-0 group-hover:opacity-100 grid h-7 w-7 place-items-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-[#1f1f1f]"
+                                className="grid h-7 w-7 place-items-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-[#1f1f1f] lg:opacity-0 lg:group-hover:opacity-100"
                               >
                                 <MoreHorizontal className="h-4 w-4" />
                               </button>

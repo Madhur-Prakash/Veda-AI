@@ -167,17 +167,17 @@ export default function LibraryPage() {
             <p className="text-[14px] text-neutral-500">Your saved papers, question bank, and reusable templates.</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
               <input
                 type="text"
                 placeholder="Search library…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-11 w-64 rounded-full border border-neutral-200 bg-white pl-11 pr-5 text-[14px] outline-none focus:border-[#ff6a2b] focus:ring-2 focus:ring-[#ff6a2b]/20"
+                className="h-11 w-full rounded-full border border-neutral-200 bg-white pl-11 pr-5 text-[14px] outline-none focus:border-[#ff6a2b] focus:ring-2 focus:ring-[#ff6a2b]/20 sm:w-56"
               />
             </div>
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => setShowFilter((v) => !v)}
                 className={`grid h-11 w-11 place-items-center rounded-full border bg-white transition ${showFilter || subjectFilter !== 'All Subjects' ? 'border-[#ff6a2b] text-[#ff6a2b]' : 'border-neutral-200 text-neutral-500 hover:text-[#1f1f1f]'}`}
@@ -185,7 +185,7 @@ export default function LibraryPage() {
                 {subjectFilter !== 'All Subjects' ? <X className="h-4 w-4" onClick={(e) => { e.stopPropagation(); setSubjectFilter('All Subjects'); setShowFilter(false); }} /> : <Filter className="h-4 w-4" />}
               </button>
               {showFilter && (
-                <div className="absolute right-0 top-13 z-20 mt-2 w-52 rounded-[20px] bg-white py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+                <div className="absolute right-0 top-[52px] z-20 w-52 rounded-[20px] bg-white py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
                   {SUBJECTS.map((s) => (
                     <button
                       key={s}
@@ -202,12 +202,12 @@ export default function LibraryPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-1 rounded-[20px] bg-white p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] w-fit">
+        <div className="mb-6 flex w-full gap-1 overflow-x-auto rounded-[20px] bg-white p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 rounded-[14px] px-5 py-2.5 text-[14px] font-semibold transition ${tab === t.id ? 'bg-[#1f1f1f] text-white' : 'text-neutral-500 hover:text-[#1f1f1f]'}`}
+              className={`flex shrink-0 items-center gap-2 rounded-[14px] px-4 py-2.5 text-[13px] font-semibold transition sm:px-5 sm:text-[14px] ${tab === t.id ? 'bg-[#1f1f1f] text-white' : 'text-neutral-500 hover:text-[#1f1f1f]'}`}
             >
               <t.icon className="h-4 w-4" />
               {t.label}
@@ -244,9 +244,9 @@ export default function LibraryPage() {
               filteredPapers.map((a) => (
                 <div
                   key={a.externalId}
-                  className="flex items-center gap-4 rounded-[24px] bg-white px-6 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)]"
+                  className="flex flex-col gap-3 rounded-[24px] bg-white px-5 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)] sm:flex-row sm:items-center sm:gap-4 sm:px-6"
                 >
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[14px] bg-neutral-100 text-neutral-500">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-neutral-100 text-neutral-500 sm:h-12 sm:w-12">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -255,21 +255,25 @@ export default function LibraryPage() {
                       {a.subject} · Class {a.className} · {totalQuestions(a)} questions · {a.totalMarks} marks
                     </p>
                   </div>
-                  <span className="shrink-0 text-[12px] text-neutral-400">{formatDate(a.createdAt)}</span>
-                  <button onClick={() => toggleStar(a.externalId)} className="shrink-0">
-                    <Star className={`h-5 w-5 transition ${starred.has(a.externalId) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300 hover:text-amber-300'}`} />
-                  </button>
-                  <button
-                    onClick={() => handleDownload(a)}
-                    disabled={downloading === a.externalId}
-                    className="shrink-0 grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500 hover:border-[#ff6a2b] hover:text-[#ff6a2b] disabled:opacity-50 transition"
-                    title="Download PDF"
-                  >
-                    {downloading === a.externalId
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <Download className="h-4 w-4" />
-                    }
-                  </button>
+                  <div className="flex items-center justify-between sm:contents">
+                    <span className="text-[12px] text-neutral-400">{formatDate(a.createdAt)}</span>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => toggleStar(a.externalId)} className="shrink-0">
+                        <Star className={`h-5 w-5 transition ${starred.has(a.externalId) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300 hover:text-amber-300'}`} />
+                      </button>
+                      <button
+                        onClick={() => handleDownload(a)}
+                        disabled={downloading === a.externalId}
+                        className="shrink-0 grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500 hover:border-[#ff6a2b] hover:text-[#ff6a2b] disabled:opacity-50 transition"
+                        title="Download PDF"
+                      >
+                        {downloading === a.externalId
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Download className="h-4 w-4" />
+                        }
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))
             )}
@@ -316,7 +320,7 @@ export default function LibraryPage() {
 
         {/* Templates */}
         {tab === 'templates' && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             {TEMPLATES.map((t) => (
               <div
                 key={t.id}

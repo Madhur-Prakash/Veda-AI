@@ -3,7 +3,7 @@
 import type { ComponentType, ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { ArrowLeft, Bell, ChevronDown, Clock3, LayoutGrid, Library, LogOut, School2, Settings, SquarePen, CheckCircle2, Loader2, AlertCircle, BadgeInfo } from 'lucide-react';
+import { ArrowLeft, Bell, ChevronDown, Clock3, LayoutGrid, Library, LogOut, School2, Settings, SquarePen, CheckCircle2, AlertCircle, BadgeInfo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
@@ -11,11 +11,11 @@ import { useNotificationStore } from '@/store/notificationStore';
 import { useEffect, useRef, useState } from 'react';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: LayoutGrid },
-  { href: '/groups', label: 'My Groups', icon: School2 },
-  { href: '/assignments', label: 'Assignments', icon: SquarePen },
-  { href: '/toolkit', label: "AI Teacher's Toolkit", icon: Library },
-  { href: '/library', label: 'My Library', icon: Clock3 }
+  { href: '/', label: 'Home', shortLabel: 'Home', icon: LayoutGrid },
+  { href: '/groups', label: 'My Groups', shortLabel: 'Groups', icon: School2 },
+  { href: '/assignments', label: 'Assignments', shortLabel: 'Assign', icon: SquarePen },
+  { href: '/toolkit', label: "AI Teacher's Toolkit", shortLabel: 'Toolkit', icon: Library },
+  { href: '/library', label: 'My Library', shortLabel: 'Library', icon: Clock3 }
 ];
 
 const STATIC_NOTIFICATIONS = [
@@ -41,7 +41,7 @@ export function Shell({ children, title = 'Assignment', titleIcon: TitleIcon = L
   const pathname = usePathname();
   const currentPath = activePath ?? pathname;
   const router = useRouter();
-  const { user, accessToken, hasHydrated, logout, loadMe } = useAuthStore();
+  const { user, hasHydrated, logout, loadMe } = useAuthStore();
   const { items, markRead, markAllRead } = useNotificationStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -52,13 +52,12 @@ export function Shell({ children, title = 'Assignment', titleIcon: TitleIcon = L
     if (!hasHydrated) return;
     if (user) return;
 
-    if (accessToken) {
-      void loadMe();
-      return;
-    }
-
-    router.replace('/auth/login');
-  }, [accessToken, hasHydrated, loadMe, router, user]);
+    loadMe().then(() => {
+      const { user: u } = useAuthStore.getState();
+      if (!u) router.replace('/auth/login');
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasHydrated, user]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -91,7 +90,7 @@ export function Shell({ children, title = 'Assignment', titleIcon: TitleIcon = L
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f7f7f6_0%,#efefef_100%)] text-[#1f1f1f]">
       <div className="mx-auto flex min-h-screen max-w-[1600px] gap-5 p-3 md:p-4">
-        {/* Sidebar */}
+        {/* Sidebar — desktop only */}
         <aside className="hidden w-[310px] shrink-0 rounded-[28px] bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] lg:flex lg:flex-col">
           <Link href="/" className="flex items-center gap-3 px-1 text-[30px] font-extrabold tracking-tight">
             <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[linear-gradient(160deg,#ffb24f_0%,#ff6a2b_38%,#3a1c13_100%)] text-white shadow-[0_14px_30px_rgba(255,106,43,0.25)]">
@@ -134,31 +133,31 @@ export function Shell({ children, title = 'Assignment', titleIcon: TitleIcon = L
 
         {/* Main */}
         <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-hidden">
-          <header className="flex items-center justify-between rounded-[24px] bg-white px-5 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] md:px-6">
-            <div className="flex items-center gap-3 text-neutral-500">
-              <button onClick={() => router.back()} className="grid h-12 w-12 place-items-center rounded-full bg-black/[0.03] text-[#1f1f1f] transition hover:bg-black/[0.06]" aria-label="Back">
+          <header className="flex items-center justify-between rounded-[24px] bg-white px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] md:px-6">
+            <div className="flex items-center gap-2 min-w-0 text-neutral-500">
+              <button onClick={() => router.back()} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-black/[0.03] text-[#1f1f1f] transition hover:bg-black/[0.06]" aria-label="Back">
                 <ArrowLeft className="h-5 w-5 text-[#1f1f1f]" />
               </button>
-              <TitleIcon className="h-5 w-5 text-neutral-500" />
-              <span className="text-[18px] font-semibold text-neutral-500">{title}</span>
+              <TitleIcon className="hidden h-5 w-5 shrink-0 text-neutral-500 sm:block" />
+              <span className="truncate text-[16px] font-semibold text-neutral-500 sm:text-[18px]">{title}</span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               {/* Bell / Notifications */}
               <div className="relative" ref={notifRef}>
                 <button
                   onClick={handleBellClick}
-                  className="relative grid h-11 w-11 place-items-center rounded-full bg-black/[0.03] text-[#1f1f1f] transition hover:bg-black/[0.06]"
+                  className="relative grid h-10 w-10 place-items-center rounded-full bg-black/[0.03] text-[#1f1f1f] transition hover:bg-black/[0.06]"
                   aria-label="Notifications"
                 >
-                  <Bell className="h-6 w-6" />
+                  <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-[#ff6a2b]" />
                   )}
                 </button>
 
                 {notifOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-[340px] rounded-[20px] bg-white p-3 shadow-[0_8px_32px_rgba(0,0,0,0.14)] ring-1 ring-black/5">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-[min(340px,calc(100vw-1rem))] rounded-[20px] bg-white p-3 shadow-[0_8px_32px_rgba(0,0,0,0.14)] ring-1 ring-black/5">
                     <div className="mb-3 flex items-center justify-between px-2">
                       <span className="text-[15px] font-semibold text-[#1f1f1f]">Notifications</span>
                       <span className="text-[12px] text-neutral-400">{notifications.length} recent</span>
@@ -212,13 +211,13 @@ export function Shell({ children, title = 'Assignment', titleIcon: TitleIcon = L
               <div className="relative" ref={dropRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-3 rounded-full bg-black/[0.03] px-3 py-2 text-[#1f1f1f]"
+                  className="flex items-center gap-2 rounded-full bg-black/[0.03] px-2 py-2 text-[#1f1f1f] md:gap-3 md:px-3"
                 >
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-[#fde5d8] text-[15px] font-bold text-[#ff6a2b]">
+                  <div className="grid h-8 w-8 place-items-center rounded-full bg-[#fde5d8] text-[13px] font-bold text-[#ff6a2b] md:h-10 md:w-10 md:text-[15px]">
                     {initials}
                   </div>
                   <span className="hidden font-semibold sm:block">{user?.name?.split(' ')[0] ?? 'Teacher'}</span>
-                  <ChevronDown className="h-5 w-5 text-neutral-500" />
+                  <ChevronDown className="h-4 w-4 text-neutral-500 md:h-5 md:w-5" />
                 </button>
 
                 {dropdownOpen && (
@@ -240,9 +239,47 @@ export function Shell({ children, title = 'Assignment', titleIcon: TitleIcon = L
             </div>
           </header>
 
-          <div className="min-h-0 flex-1 overflow-auto pr-1">{children}</div>
+          {/* Page content — extra bottom padding on mobile to clear the bottom nav */}
+          <div className="min-h-0 flex-1 overflow-auto pr-1 pb-20 lg:pb-0">{children}</div>
         </main>
       </div>
+
+      {/* Mobile bottom navigation — visible on < lg only */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-200/80 bg-white/95 backdrop-blur-sm lg:hidden">
+        <div className="flex h-16 items-center justify-around px-1">
+          {navItems.map((item) => {
+            const isActive = currentPath === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex flex-1 flex-col items-center gap-0.5 py-2',
+                  isActive ? 'text-[#ff6a2b]' : 'text-neutral-400'
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-[9px] font-semibold">{item.shortLabel}</span>
+              </Link>
+            );
+          })}
+          {/* Create shortcut */}
+          <Link
+            href="/create-assignment"
+            className={cn(
+              'flex flex-1 flex-col items-center gap-0.5 py-2',
+              currentPath === '/create-assignment' ? 'text-[#ff6a2b]' : 'text-neutral-400'
+            )}
+          >
+            <div className="grid h-7 w-7 place-items-center rounded-full bg-[#1f1f1f]">
+              <SquarePen className="h-3.5 w-3.5 text-white" />
+            </div>
+            <span className="text-[9px] font-semibold">Create</span>
+          </Link>
+        </div>
+        {/* Safe area for home indicator on iOS */}
+        <div className="h-safe-bottom" />
+      </nav>
     </div>
   );
 }

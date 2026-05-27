@@ -2,10 +2,11 @@
 
 import { useEffect, use, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Download, RefreshCw, Copy, FileText, Printer, Eye, EyeOff } from 'lucide-react';
+import { Download, RefreshCw, Copy, FileText, Printer, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Shell } from '@/components/shell';
 import { useAssignmentStore } from '@/store/assignmentStore';
 import { useGenerationStore } from '@/store/generationStore';
+import { assignmentApi } from '@/lib/api';
 import type { GenerationQuestion } from '@/types';
 
 const DIFF_BADGE: Record<string, { bg: string; text: string; label: string }> = {
@@ -62,6 +63,7 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
   const { setQueued } = useGenerationStore();
   const [copyDone, setCopyDone] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [showAnswers, setShowAnswers] = useState(false);
 
   useEffect(() => {
@@ -74,17 +76,23 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
   const totalQuestions = assessment?.sections.reduce((s, sec) => s + sec.questions.length, 0) ?? 0;
   const totalSections = assessment?.sections.length ?? 0;
 
-  function handleDownload() {
-    const token = localStorage.getItem('accessToken');
-    const url = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/assignments/${id}/export/pdf`;
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.blob())
-      .then((blob) => {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `assessment-${id}.pdf`;
-        link.click();
-      });
+  async function handleDownload() {
+    if (!a) return;
+    setIsDownloading(true);
+    try {
+      const response = await assignmentApi.exportPdf(id);
+      const blob = new Blob([response.data as BlobPart], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${a.title}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsDownloading(false);
+    }
   }
 
   async function handleRegenerate() {
@@ -149,9 +157,11 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
           <div className="mt-5 flex flex-wrap gap-3">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[14px] font-semibold text-[#1f1f1f] shadow-sm hover:bg-white/90"
+              disabled={isDownloading}
+              className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[14px] font-semibold text-[#1f1f1f] shadow-sm hover:bg-white/90 disabled:opacity-70"
             >
-              <Download className="h-4 w-4" /> Download PDF
+              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {isDownloading ? 'Downloading…' : 'Download PDF'}
             </button>
             <button
               onClick={() => setShowAnswers(!showAnswers)}
@@ -189,7 +199,7 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
         </section>
 
         {/* Question paper */}
-        <section className="mt-4 rounded-[34px] bg-white px-8 py-9 shadow-[0_4px_20px_rgba(0,0,0,0.06)] print:shadow-none md:px-16 md:py-12">
+        <section className="mt-4 rounded-[34px] bg-white px-4 py-6 shadow-[0_4px_20px_rgba(0,0,0,0.06)] print:shadow-none sm:px-8 sm:py-9 md:px-16 md:py-12">
           {/* Header */}
           <div className="border-b border-neutral-200 pb-6 text-center">
             <h1 className="font-display text-[26px] font-semibold tracking-tight md:text-[36px]">{a.title}</h1>

@@ -18,7 +18,7 @@ const STATUS_BADGE: Record<string, { label: string; bg: string; text: string }> 
   REGENERATING: { label: 'Regenerating', bg: 'bg-yellow-100', text: 'text-yellow-700' }
 };
 
-function AssignmentCard({ assignment, onMenuToggle, menuOpen }: { assignment: Assignment; onMenuToggle: () => void; menuOpen: boolean }) {
+function AssignmentCard({ assignment, onMenuToggle, menuOpen }: { assignment: Assignment; onMenuToggle?: (e?: React.MouseEvent) => void; menuOpen: boolean }) {
   const router = useRouter();
   const badge = STATUS_BADGE[assignment.status] ?? STATUS_BADGE.QUEUED;
 
@@ -42,7 +42,7 @@ function AssignmentCard({ assignment, onMenuToggle, menuOpen }: { assignment: As
           <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${badge.bg} ${badge.text}`}>
             {badge.label}
           </span>
-          <button className="rounded-full p-1 text-neutral-400 hover:bg-black/[0.04] hover:text-[#1f1f1f]" onClick={onMenuToggle}>
+          <button className="rounded-full p-1 text-neutral-400 hover:bg-black/[0.04] hover:text-[#1f1f1f]" onClick={(e) => { e.stopPropagation(); onMenuToggle?.(e); }}>
             <MoreVertical className="h-5 w-5" />
           </button>
         </div>
@@ -119,10 +119,7 @@ export default function AssignmentsPage() {
                   key={a.externalId}
                   assignment={a}
                   menuOpen={openMenuId === a.externalId}
-                  onMenuToggle={(e) => {
-                    (e as unknown as React.MouseEvent).stopPropagation();
-                    setOpenMenuId(openMenuId === a.externalId ? null : a.externalId);
-                  }}
+                  onMenuToggle={() => setOpenMenuId(openMenuId === a.externalId ? null : a.externalId)}
                 />
               ))}
             </div>
@@ -150,7 +147,7 @@ export default function AssignmentsPage() {
           </div>
         )}
 
-        <div className="fixed bottom-5 left-1/2 z-20 -translate-x-1/2">
+        <div className="fixed bottom-20 left-1/2 z-20 -translate-x-1/2 lg:bottom-5">
           <Link href="/create-assignment">
             <Button className="h-14 rounded-full px-7 text-[16px] shadow-[0_4px_20px_rgba(0,0,0,0.18)]">
               <Plus className="h-5 w-5" /> Create Assignment
