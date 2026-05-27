@@ -23,6 +23,7 @@ function parseAllowedOrigins(value: string) {
 
 export function initSocket(server: HttpServer) {
   io = new Server(server, {
+    path: '/socket.io/',
     cors: { origin: parseAllowedOrigins(env.CLIENT_ORIGIN), credentials: true }
   });
 

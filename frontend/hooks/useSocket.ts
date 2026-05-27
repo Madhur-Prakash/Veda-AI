@@ -6,17 +6,22 @@ import { useGenerationStore } from '@/store/generationStore';
 import { useAssignmentStore } from '@/store/assignmentStore';
 import type { Assignment, GenerationProgressEvent } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim() || '/api/v1';
-const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL?.trim() ||
-  process.env.NEXT_PUBLIC_API_URL?.trim()?.replace(/\/api\/v1\/?$/, '') ||
-  'http://localhost:4000';
+function resolveSocketUrl() {
+  const explicitSocketUrl = process.env.NEXT_PUBLIC_SOCKET_URL?.trim();
+  if (explicitSocketUrl) return explicitSocketUrl;
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+
+  return undefined;
+}
 
 let socket: Socket | null = null;
 
 export function getSocket() {
   if (!socket) {
-    socket = io(SOCKET_URL, { withCredentials: true, autoConnect: false });
+    socket = io(resolveSocketUrl(), { path: '/socket.io/', withCredentials: true, autoConnect: false });
   }
   return socket;
 }

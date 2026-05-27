@@ -11,7 +11,6 @@ import { errorHandler, notFoundHandler } from '@/middleware/errorHandler.js';
 import { requestIdMiddleware } from '@/middleware/requestId.js';
 import { requestLogger } from '@/middleware/logger.js';
 import { initSocket } from '@/websocket/socket.js';
-import '@/workers/assignment.worker.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -40,12 +39,22 @@ app.use(errorHandler);
 const port = env.PORT;
 
 async function bootstrap() {
-  await connectMongo();
-  await connectRedis();
   initSocket(server);
 
   server.listen(port, () => {
     console.log(`VedaAI backend listening on port ${port}`);
+  });
+
+  void connectMongo().catch((error) => {
+    console.error('Mongo connection failed', error);
+  });
+
+  void connectRedis().catch((error) => {
+    console.error('Redis connection failed', error);
+  });
+
+  void import('@/workers/assignment.worker.js').catch((error) => {
+    console.error('Assignment worker failed to start', error);
   });
 }
 
