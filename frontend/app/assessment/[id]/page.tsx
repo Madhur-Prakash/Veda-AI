@@ -141,9 +141,6 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
   }
 
   const currentAssessment = assessment;
-  console.log('a:', a);
-  console.log('Current assessment:', currentAssessment);
-
   return (
     <Shell title={a.title} titleIcon={FileText}>
       <div className="mx-auto w-full max-w-[900px] px-2 pb-12 md:px-0">
@@ -151,7 +148,7 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
         {/* ── Toolbar ── */}
         <section className="mb-5 rounded-[28px] bg-[#1e1e1e] px-6 py-5 text-white shadow-lg print:hidden">
           <p className="text-[16px] font-semibold">
-            {a.title} — {a.subject}, Class {a.className}
+            {a.subject}, {a.className.includes('Class') || a.className.startsWith('class') ? a.className : `Class ${a.className}`}
           </p>
           <p className="mt-0.5 text-[13px] text-neutral-400">
             Topic: {a.topic} · {totalSections} sections · {totalQuestions} questions · {a.totalMarks} marks

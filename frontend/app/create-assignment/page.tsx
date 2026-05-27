@@ -190,7 +190,7 @@ export default function CreateAssignmentPage() {
     setIsSubmitting(true);
     try {
       const dueDate = new Date(form.dueDate).toISOString();
-      const title = `${form.subject.trim()} - ${form.topic.trim()} Question Paper`;
+      const title = `${form.subject.trim()} - ${form.topic.trim()}`;
       const payload = {
         title,
         schoolName: form.schoolName,
