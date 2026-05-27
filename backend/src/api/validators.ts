@@ -56,3 +56,16 @@ export const toolkitSchema = z.object({
   toolId: z.enum(['rubric', 'blooms', 'lessonplan', 'difficulty', 'rewriter', 'summarizer']),
   prompt: z.string().min(10).max(4000)
 });
+
+export const createGroupSchema = z.object({
+  name: z.string().min(2).max(80),
+  subject: z.string().min(1).max(80),
+  className: z.string().min(1).max(40),
+  colorIdx: z.number().int().min(0).max(7).optional()
+});
+
+export const assignPaperSchema = z.object({
+  assignmentExternalId: z.string().min(1),
+  assignmentTitle: z.string().min(1).max(120),
+  dueDate: z.string().datetime({ offset: true }).optional()
+});

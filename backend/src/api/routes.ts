@@ -9,7 +9,9 @@ import {
   registerSchema,
   loginSchema,
   updateProfileSchema,
-  toolkitSchema
+  toolkitSchema,
+  createGroupSchema,
+  assignPaperSchema
 } from '@/api/validators.js';
 import {
   createAssignment,
@@ -21,6 +23,10 @@ import {
 } from '@/api/assignment.controller.js';
 import { register, login, refresh, logout, getMe, updateMe } from '@/api/auth.controller.js';
 import { runTool } from '@/api/toolkit.controller.js';
+import {
+  listGroups, createGroup, getGroup, deleteGroup,
+  assignPaper, removePaper, refreshInvite
+} from '@/api/group.controller.js';
 
 export const apiRouter = Router();
 const generationRateLimit = createRateLimitMiddleware({
@@ -52,3 +58,12 @@ apiRouter.get('/assignments/:id/export/pdf', requireAuth, asyncHandler(exportPdf
 
 // Toolkit routes
 apiRouter.post('/toolkit/run', requireAuth, generationRateLimit, validateBody(toolkitSchema), asyncHandler(runTool));
+
+// Group routes
+apiRouter.get('/groups',                             requireAuth, asyncHandler(listGroups));
+apiRouter.post('/groups',                            requireAuth, validateBody(createGroupSchema), asyncHandler(createGroup));
+apiRouter.get('/groups/:id',                         requireAuth, asyncHandler(getGroup));
+apiRouter.delete('/groups/:id',                      requireAuth, asyncHandler(deleteGroup));
+apiRouter.post('/groups/:id/papers',                 requireAuth, validateBody(assignPaperSchema), asyncHandler(assignPaper));
+apiRouter.delete('/groups/:id/papers/:assignmentId', requireAuth, asyncHandler(removePaper));
+apiRouter.post('/groups/:id/invite',                 requireAuth, asyncHandler(refreshInvite));

@@ -84,6 +84,28 @@ export interface AssignmentCreatePayload {
   questionControls: QuestionControl[];
 }
 
+export interface AssignedPaper {
+  assignmentExternalId: string;
+  assignmentTitle: string;
+  assignedAt: string;
+  dueDate?: string;
+}
+
+export interface Group {
+  _id: string;
+  externalId: string;
+  teacherId: string;
+  name: string;
+  subject: string;
+  className: string;
+  colorIdx: number;
+  studentCount: number;
+  inviteCode: string;
+  assignedPapers: AssignedPaper[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DashboardSummary {
   totalAssignments: number;
   completedAssignments: number;

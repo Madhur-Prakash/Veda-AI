@@ -49,3 +49,16 @@ export const assignmentApi = {
 export const toolkitApi = {
   run: (toolId: string, prompt: string) => api.post('/toolkit/run', { toolId, prompt })
 };
+
+export const groupApi = {
+  list: () => api.get('/groups'),
+  create: (body: { name: string; subject: string; className: string; colorIdx?: number }) =>
+    api.post('/groups', body),
+  get: (id: string) => api.get(`/groups/${id}`),
+  remove: (id: string) => api.delete(`/groups/${id}`),
+  assignPaper: (id: string, body: { assignmentExternalId: string; assignmentTitle: string; dueDate?: string }) =>
+    api.post(`/groups/${id}/papers`, body),
+  removePaper: (id: string, assignmentId: string) =>
+    api.delete(`/groups/${id}/papers/${assignmentId}`),
+  refreshInvite: (id: string) => api.post(`/groups/${id}/invite`)
+};
