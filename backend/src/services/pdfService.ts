@@ -65,11 +65,13 @@ export function generatePdfBuffer(
 
       const header = getSectionHeader(section.title, si);
       doc.fontSize(12).font('Helvetica-Bold').fillColor('#1a1a1a').text(header.label, { align: 'center' });
-      doc.moveDown(0.15);
+      doc.moveDown(0.4);
 
       if (section.instruction) {
         doc.fontSize(10).font('Helvetica-Bold').fillColor('#1a1a1a').text(section.instruction, { align: 'center' });
-        doc.moveDown(0.3);
+        doc.moveDown(0.55);
+      } else {
+        doc.moveDown(0.25);
       }
 
       for (const [qi, q] of section.questions.entries()) {
@@ -79,6 +81,33 @@ export function generatePdfBuffer(
         doc.font('Helvetica').text(q.question, { continued: true });
         doc.font('Helvetica-Bold').text(` [${q.marks} ${q.marks === 1 ? 'Mark' : 'Marks'}]`);
         doc.moveDown(0.45);
+      }
+    }
+
+    doc.addPage();
+    doc.fontSize(16).font('Helvetica-Bold').fillColor('#1a1a1a').text('Answer Key', { align: 'center' });
+    doc.moveDown(0.75);
+
+    for (const [si, section] of assessment.sections.entries()) {
+      const header = getSectionHeader(section.title, si);
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('#1a1a1a').text(header.label, { align: 'left' });
+
+      if (section.instruction) {
+        doc.fontSize(10).font('Helvetica').fillColor('#1a1a1a').text(section.instruction);
+        doc.moveDown(0.55);
+      } else {
+        doc.moveDown(0.3);
+      }
+
+      for (const [qi, q] of section.questions.entries()) {
+        const answerText = q.answer_key?.trim() || 'No answer provided';
+        doc.fontSize(10.5).font('Helvetica-Bold').fillColor('#1a1a1a').text(`${qi + 1}. `, { continued: true });
+        doc.font('Helvetica').text(answerText);
+        doc.moveDown(0.35);
+      }
+
+      if (si < assessment.sections.length - 1) {
+        doc.moveDown(0.8);
       }
     }
 
