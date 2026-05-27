@@ -40,20 +40,23 @@ export class AssignmentService {
       status: 'QUEUED'
     });
 
+    const queueJobId = createId('job');
     const job = await assignmentsQueue.add('generate-assignment', {
       assignmentExternalId: externalId,
       input
+    }, {
+      jobId: queueJobId
     });
 
     await GenerationJobModel.create({
-      jobId: String(job.id),
+      jobId: queueJobId,
       assignmentExternalId: externalId,
       state: 'QUEUED',
       progress: 0,
       message: 'Queued for generation'
     });
 
-    assignment.generationJobId = String(job.id);
+    assignment.generationJobId = queueJobId;
     await assignment.save();
 
     await AssignmentDraftModel.create({
@@ -87,13 +90,16 @@ export class AssignmentService {
       teacherId
     } as AssignmentCreateInput;
 
+    const queueJobId = createId('job');
     const job = await assignmentsQueue.add('generate-assignment', {
       assignmentExternalId,
       input
+    }, {
+      jobId: queueJobId
     });
 
     await GenerationJobModel.create({
-      jobId: String(job.id),
+      jobId: queueJobId,
       assignmentExternalId,
       state: 'QUEUED',
       progress: 0,
@@ -101,10 +107,10 @@ export class AssignmentService {
     });
 
     assignment.status = 'REGENERATING';
-    assignment.generationJobId = String(job.id);
+    assignment.generationJobId = queueJobId;
     await assignment.save();
 
-    return { assignmentExternalId, jobId: String(job.id), state: 'QUEUED' as const };
+    return { assignmentExternalId, jobId: queueJobId, state: 'QUEUED' as const };
   }
 
   async completeGeneration(assignmentExternalId: string, assessment: GeneratedAssessment) {

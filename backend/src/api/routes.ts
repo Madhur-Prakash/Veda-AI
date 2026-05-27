@@ -24,7 +24,7 @@ const generationRateLimit = createRateLimitMiddleware({
   keyPrefix: 'groq:generation',
   limit: 5,
   windowMs: 10 * 60 * 1000, // 10 minutes
-  message: 'Too many assessment generation requests. Please try again later.'
+  message: 'Too many assessment generation requests.'
 });
 
 apiRouter.get('/health', (_req, res) => {

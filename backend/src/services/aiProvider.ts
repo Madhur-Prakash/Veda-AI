@@ -37,7 +37,7 @@ export class GroqAiProvider implements AiProvider {
       });
     } catch (error) {
       if (isGroqRateLimitError(error)) {
-        throw new HttpError(429, 'Groq rate limit reached. Please try again later.');
+        throw new HttpError(429, 'Groq rate limit reached.');
       }
 
       throw error;
