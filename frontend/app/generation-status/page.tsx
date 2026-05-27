@@ -18,6 +18,16 @@ const STEPS = [
   { label: 'Complete', threshold: 100 }
 ];
 
+function getFailureMessage(error: string | null) {
+  if (!error) return 'An unexpected error occurred.';
+
+  if (/\b429\b|rate limit|too many requests/i.test(error)) {
+    return 'Groq rate limit reached. Please wait a moment and try again.';
+  }
+
+  return error;
+}
+
 function GenerationStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -86,6 +96,9 @@ function GenerationStatusContent() {
             AI is generating your assessment
           </div>
           <p className="mt-1 text-[15px] text-neutral-400">ID: {assignmentId}</p>
+          <p className="mt-3 rounded-[16px] border border-[#ffe3d4] bg-[#fff8f3] px-4 py-3 text-[13px] leading-6 text-neutral-600">
+            Groq can occasionally return output that does not match the expected schema. If that happens, please use <span className="font-semibold text-[#1f1f1f]">Try Again</span> to regenerate with the same input.
+          </p>
         </div>
 
         <section className="rounded-[32px] bg-white px-6 py-8 shadow-[0_2px_12px_rgba(0,0,0,0.06)] md:px-8">
@@ -94,7 +107,7 @@ function GenerationStatusContent() {
               <XCircle className="h-16 w-16 text-red-500" />
               <div>
                 <h2 className="text-[22px] font-semibold text-[#1f1f1f]">Generation Failed</h2>
-                <p className="mt-2 text-[15px] text-neutral-500">{error ?? 'An unexpected error occurred.'}</p>
+                <p className="mt-2 text-[15px] text-neutral-500">{getFailureMessage(error)}</p>
               </div>
               <div className="flex gap-3">
                 <button
