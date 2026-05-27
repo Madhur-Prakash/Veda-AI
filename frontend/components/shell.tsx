@@ -142,9 +142,61 @@ export function Shell({ children, title: titleProp, titleIcon: TitleIcon = Layou
                 <button onClick={() => router.back()} className="hidden md:grid h-10 w-10 shrink-0 place-items-center rounded-full bg-black/[0.03] text-[#1f1f1f] transition hover:bg-black/[0.06]" aria-label="Back">
                 <ArrowLeft className="h-5 w-5 text-[#1f1f1f]" />
                 </button>
-                <button onClick={() => setMobileOpen(true)} className="grid h-10 w-10 place-items-center rounded-full bg-black/[0.03] text-[#1f1f1f] transition hover:bg-black/[0.06] lg:hidden ml-1" aria-label="Open menu">
-                  <Menu className="h-5 w-5" />
-                </button>
+                <div className="relative lg:hidden">
+                  <button
+                    onClick={() => setMobileOpen((v) => !v)}
+                    className="grid h-10 w-10 place-items-center rounded-full bg-black/[0.03] text-[#1f1f1f] transition hover:bg-black/[0.06]"
+                    aria-label="Toggle menu"
+                  >
+                    {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                  </button>
+
+                  {mobileOpen && (
+                    <div className="absolute left-0 top-full mt-2 z-50 w-64 rounded-[20px] bg-white p-2 shadow-[0_8px_32px_rgba(0,0,0,0.14)] ring-1 ring-black/5">
+                      <nav className="space-y-0.5">
+                        {navItems.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMobileOpen(false)}
+                            className={cn(
+                              'flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] text-neutral-500 transition hover:bg-neutral-50 hover:text-[#1f1f1f]',
+                              currentPath === item.href && 'bg-[#f2f2f2] text-[#1f1f1f] font-semibold'
+                            )}
+                          >
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            <span>{item.label}</span>
+                          </Link>
+                        ))}
+                      </nav>
+                      <div className="mt-2 border-t border-neutral-100 pt-2 space-y-0.5">
+                        <Link
+                          href="/create-assignment"
+                          onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] font-semibold text-[#ff6a2b] hover:bg-orange-50"
+                        >
+                          <Plus className="h-4 w-4 shrink-0" />
+                          Create Assignment
+                        </Link>
+                        <Link
+                          href="/settings"
+                          onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] text-neutral-500 hover:bg-neutral-50 hover:text-[#1f1f1f]"
+                        >
+                          <Settings className="h-4 w-4 shrink-0" />
+                          Settings
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] text-red-500 hover:bg-red-50"
+                        >
+                          <LogOut className="h-4 w-4 shrink-0" />
+                          Sign out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <TitleIcon className="hidden h-5 w-5 shrink-0 text-neutral-500 sm:block" />
               <span className="truncate text-[16px] font-semibold text-neutral-500 sm:text-[18px]">{resolvedTitle}</span>
@@ -289,51 +341,10 @@ export function Shell({ children, title: titleProp, titleIcon: TitleIcon = Layou
         </div>
       </div>
 
-      {/* Mobile slide-over menu */}
+      {/* close mobile menu on outside click */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="relative z-50 w-[82%] max-w-[320px] bg-white p-4 shadow-lg">
-            <div className="flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-3 text-[22px] font-extrabold tracking-tight">
-                <span className="grid h-9 w-9 place-items-center rounded-2xl bg-[linear-gradient(160deg,#ffb24f_0%,#ff6a2b_38%,#3a1c13_100%)] text-white">V</span>
-                <span>VedaAI</span>
-              </Link>
-              <button onClick={() => setMobileOpen(false)} className="grid h-9 w-9 place-items-center rounded-full bg-black/[0.03]" aria-label="Close menu">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <Link href="/create-assignment">
-              <Button className="mt-4 h-12 w-full rounded-full border-2 border-[#ff824f] bg-[#1f1f1f] text-sm text-white">Create Assignment</Button>
-            </Link>
-
-            <nav className="mt-6 space-y-2">
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={cn('flex items-center gap-3 rounded-2xl px-3 py-3 text-[17px] text-neutral-500 hover:bg-neutral-50', currentPath === item.href && 'bg-[#f2f2f2] text-[#1f1f1f]')}>
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-            </nav>
-
-            <div className="mt-6 border-t border-neutral-100 pt-4">
-              <div className="flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-[#fde5d8] text-[16px] font-bold text-[#ff6a2b]">{initials}</div>
-                <div>
-                  <div className="font-semibold">{user?.name ?? 'Teacher'}</div>
-                  <div className="text-sm text-neutral-500">{user?.school || user?.email || ''}</div>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                <Link href="/settings" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 rounded-2xl px-3 py-2 text-[15px] text-neutral-700 hover:bg-neutral-50"><Settings className="h-4 w-4" /> Settings</Link>
-                <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-[15px] text-red-500 hover:bg-red-50"><LogOut className="h-4 w-4" /> Sign out</button>
-              </div>
-            </div>
-          </aside>
-        </div>
-      )}
+        <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMobileOpen(false)} />)
+      }
     </div>
   );
 }
