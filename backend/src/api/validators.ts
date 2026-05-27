@@ -51,3 +51,8 @@ export const updateProfileSchema = z.object({
   name: z.string().min(2).max(80).optional(),
   school: z.string().max(120).optional()
 });
+
+export const toolkitSchema = z.object({
+  toolId: z.enum(['rubric', 'blooms', 'lessonplan', 'difficulty', 'rewriter', 'summarizer']),
+  prompt: z.string().min(10).max(4000)
+});

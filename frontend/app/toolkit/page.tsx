@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Shell } from '@/components/shell';
-import { Library, BookOpen, Target, Brain, BarChart3, FileText, ChevronRight, Zap, Wrench } from 'lucide-react';
+import { Library, BookOpen, Target, Brain, BarChart3, FileText, ChevronRight, Zap, Wrench, Copy, Check } from 'lucide-react';
+import { toolkitApi } from '@/lib/api';
 
 const TOOLS = [
   {
@@ -13,7 +14,9 @@ const TOOLS = [
     badgeColor: 'bg-violet-100 text-violet-700',
     title: 'Rubric Generator',
     description: 'Instantly create detailed grading rubrics for any assignment or project. Specify criteria, weight, and performance levels.',
-    tags: ['Grading', 'Rubric', 'Criteria']
+    tags: ['Grading', 'Rubric', 'Criteria'],
+    inputLabel: 'Describe the assignment and rubric requirements',
+    placeholder: 'e.g. Create a rubric for a Grade 9 Science lab report on photosynthesis. Include 4 criteria: Scientific Process, Data Analysis, Conclusion, and Presentation. Use 4 performance levels.'
   },
   {
     id: 'blooms',
@@ -23,7 +26,9 @@ const TOOLS = [
     badgeColor: 'bg-blue-100 text-blue-700',
     title: "Bloom's Analyzer",
     description: "Analyze your question paper against Bloom's Taxonomy levels. Get a cognitive distribution report and suggestions to improve depth.",
-    tags: ["Bloom's", 'Cognitive', 'Analysis']
+    tags: ["Bloom's", 'Cognitive', 'Analysis'],
+    inputLabel: 'Paste your questions (one per line)',
+    placeholder: '1. Define electric current and state its SI unit.\n2. Explain how resistance affects current flow.\n3. Design a circuit that reduces power consumption by 30%.\n4. Compare series and parallel circuits with examples.'
   },
   {
     id: 'lessonplan',
@@ -33,7 +38,9 @@ const TOOLS = [
     badgeColor: '',
     title: 'Lesson Plan Creator',
     description: 'Generate structured lesson plans aligned to NCERT or state board syllabus. Set objectives, activities, and assessments in seconds.',
-    tags: ['Lesson Plan', 'NCERT', 'Syllabus']
+    tags: ['Lesson Plan', 'NCERT', 'Syllabus'],
+    inputLabel: 'Describe the lesson details',
+    placeholder: 'e.g. Class 8 Science, Chapter: Force and Pressure. Duration: 45 minutes. Board: CBSE/NCERT. Students have prior knowledge of motion. Focus on conceptual understanding with real-world examples.'
   },
   {
     id: 'difficulty',
@@ -43,50 +50,137 @@ const TOOLS = [
     badgeColor: 'bg-amber-100 text-amber-700',
     title: 'Difficulty Calibrator',
     description: 'Paste any question and let AI score its difficulty on a 1–10 scale with reasoning. Calibrate your paper before distributing.',
-    tags: ['Difficulty', 'Scoring', 'Calibration']
+    tags: ['Difficulty', 'Scoring', 'Calibration'],
+    inputLabel: 'Paste the question to analyse',
+    placeholder: 'e.g. "A train 100m long is moving at 72 km/h. A man is running at 18 km/h in the opposite direction. How long does it take for the train to completely pass the man? Show all working."'
   },
   {
-    id: 'performance',
+    id: 'rewriter',
     icon: BarChart3,
     color: 'bg-rose-50 text-rose-600',
     badge: 'Beta',
     badgeColor: 'bg-amber-100 text-amber-700',
     title: 'Question Rewriter',
     description: 'Rephrase an existing question to a different difficulty, language, or question type (MCQ → Short, Short → Long) in one click.',
-    tags: ['Rephrase', 'Question', 'Rewrite']
+    tags: ['Rephrase', 'Question', 'Rewrite'],
+    inputLabel: 'Paste the question and describe the change',
+    placeholder: 'Original question: "What is photosynthesis?"\n\nInstruction: Rewrite as a higher-order thinking MCQ (Bloom\'s: Analyse level) for Grade 10 students. Provide 4 options.'
   },
   {
-    id: 'outline',
+    id: 'summarizer',
     icon: Zap,
     color: 'bg-orange-50 text-orange-600',
     badge: null,
     badgeColor: '',
     title: 'Chapter Summarizer',
     description: 'Upload a chapter or paste text and receive a concise, student-friendly summary with key points, definitions, and formulas.',
-    tags: ['Summary', 'Notes', 'Key Points']
+    tags: ['Summary', 'Notes', 'Key Points'],
+    inputLabel: 'Paste the chapter text or describe the topic',
+    placeholder: 'e.g. Summarise Chapter 12: Electricity (NCERT Class 10 Science). Cover: electric current, potential difference, resistance, Ohm\'s law, series and parallel circuits, heating effect of current, and power.'
   }
 ];
+
+function MarkdownResult({ text }: { text: string }) {
+  const lines = text.split('\n');
+
+  function parseBold(str: string): React.ReactNode[] {
+    const parts = str.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((p, i) =>
+      p.startsWith('**') && p.endsWith('**')
+        ? <strong key={i} className="font-semibold text-[#1f1f1f]">{p.slice(2, -2)}</strong>
+        : p
+    );
+  }
+
+  const elements: React.ReactNode[] = [];
+  const listBuffer: React.ReactNode[] = [];
+
+  function flushList() {
+    if (listBuffer.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="my-1 ml-5 space-y-0.5 list-disc text-[14px] text-neutral-700">
+          {[...listBuffer]}
+        </ul>
+      );
+      listBuffer.length = 0;
+    }
+  }
+
+  lines.forEach((line, i) => {
+    if (line.startsWith('### ')) {
+      flushList();
+      elements.push(<h3 key={i} className="mt-4 mb-1 text-[15px] font-bold text-[#1f1f1f]">{line.slice(4)}</h3>);
+    } else if (line.startsWith('## ')) {
+      flushList();
+      elements.push(<h2 key={i} className="mt-5 mb-1.5 text-[17px] font-bold text-[#1f1f1f] border-b border-neutral-100 pb-1">{line.slice(3)}</h2>);
+    } else if (line.startsWith('# ')) {
+      flushList();
+      elements.push(<h1 key={i} className="mt-6 mb-2 text-[19px] font-bold text-[#1f1f1f]">{line.slice(2)}</h1>);
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      listBuffer.push(<li key={i}>{parseBold(line.slice(2))}</li>);
+    } else if (/^\d+\.\s/.test(line)) {
+      listBuffer.push(<li key={i} className="list-decimal">{parseBold(line.replace(/^\d+\.\s/, ''))}</li>);
+    } else if (line.startsWith('| ') && !line.includes('---')) {
+      flushList();
+      const cells = line.split('|').slice(1, -1).map(c => c.trim());
+      const isHeader = i < lines.length - 1 && lines[i + 1]?.startsWith('|') && lines[i + 1].includes('---');
+      elements.push(
+        <div key={i} className={`flex gap-0 border-b border-neutral-100 py-1.5 text-[13px] ${isHeader ? 'font-semibold bg-neutral-50' : ''}`}>
+          {cells.map((cell, ci) => (
+            <span key={ci} className="flex-1 px-2">{parseBold(cell)}</span>
+          ))}
+        </div>
+      );
+    } else if (line.includes('---') && line.startsWith('|')) {
+      // table separator – skip
+    } else if (line.trim() === '') {
+      flushList();
+      elements.push(<div key={i} className="h-2" />);
+    } else {
+      flushList();
+      elements.push(<p key={i} className="text-[14px] leading-7 text-neutral-700">{parseBold(line)}</p>);
+    }
+  });
+
+  flushList();
+  return <div className="space-y-0.5">{elements}</div>;
+}
 
 export default function ToolkitPage() {
   const [active, setActive] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   function openTool(id: string) {
     setActive(id);
     setInput('');
     setResult('');
+    setError('');
   }
 
-  function handleGenerate() {
-    if (!input.trim()) return;
+  async function handleGenerate() {
+    if (!input.trim() || !active) return;
     setLoading(true);
     setResult('');
-    setTimeout(() => {
-      setResult(`AI output for "${input.slice(0, 60)}…" will appear here once the backend endpoint is connected. This UI is ready to wire up.`);
+    setError('');
+    try {
+      const { data } = await toolkitApi.run(active, input.trim());
+      setResult(data.data.result as string);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: { message?: string } } } };
+      setError(e.response?.data?.error?.message ?? 'Something went wrong. Please try again.');
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(result);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   const activeTool = TOOLS.find((t) => t.id === active);
@@ -101,7 +195,7 @@ export default function ToolkitPage() {
             <h1 className="text-[24px] font-bold">AI Teacher&apos;s Toolkit</h1>
           </div>
           <p className="mt-2 max-w-2xl text-[15px] text-neutral-300 leading-7">
-            A suite of AI-powered tools built for educators. Generate rubrics, analyze question depth, create lesson plans, and more — all in seconds.
+            A suite of AI-powered tools built for educators. Generate rubrics, analyse question depth, create lesson plans, and more — all in seconds.
           </p>
           <div className="mt-4 flex gap-3 text-[13px]">
             <span className="rounded-full bg-white/10 px-3 py-1">{TOOLS.length} tools available</span>
@@ -159,14 +253,14 @@ export default function ToolkitPage() {
 
             <div className="mt-8">
               <label className="mb-2 block text-[14px] font-semibold text-[#1f1f1f]">
-                Describe what you need
+                {activeTool.inputLabel}
               </label>
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                rows={5}
-                placeholder={`e.g. "Create a rubric for a Grade 9 Science lab report on photosynthesis with 4 criteria and 4 performance levels…"`}
-                className="w-full rounded-[20px] border border-neutral-200 bg-[#fafafa] px-5 py-4 text-[15px] text-[#1f1f1f] outline-none transition focus:border-[#ff6a2b] focus:ring-2 focus:ring-[#ff6a2b]/20 placeholder:text-neutral-400 resize-none"
+                rows={6}
+                placeholder={activeTool.placeholder}
+                className="w-full rounded-[20px] border border-neutral-200 bg-[#fafafa] px-5 py-4 text-[14px] text-[#1f1f1f] outline-none transition focus:border-[#ff6a2b] focus:ring-2 focus:ring-[#ff6a2b]/20 placeholder:text-neutral-400 resize-none"
               />
             </div>
 
@@ -183,9 +277,27 @@ export default function ToolkitPage() {
               {loading ? 'Generating…' : 'Generate with AI'}
             </button>
 
+            {error && (
+              <div className="mt-4 rounded-[16px] border border-red-200 bg-red-50 px-5 py-3 text-[13px] text-red-600">
+                {error}
+              </div>
+            )}
+
             {result && (
-              <div className="mt-6 rounded-[20px] border border-neutral-100 bg-[#fafafa] px-6 py-5 text-[15px] leading-7 text-neutral-700">
-                {result}
+              <div className="mt-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="text-[13px] font-semibold text-neutral-500">Result</span>
+                  <button
+                    onClick={handleCopy}
+                    className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[12px] font-medium text-neutral-500 hover:border-[#ff6a2b] hover:text-[#ff6a2b] transition"
+                  >
+                    {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+                <div className="rounded-[20px] border border-neutral-100 bg-[#fafafa] px-6 py-5">
+                  <MarkdownResult text={result} />
+                </div>
               </div>
             )}
           </div>

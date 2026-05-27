@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Shell } from '@/components/shell';
-import { BookMarked, BookOpen, Clock3, Download, FileText, Filter, Layers, Microscope, Search, Star, Zap } from 'lucide-react';
+import {
+  BookMarked, BookOpen, Clock3, Download, FileText,
+  Filter, Layers, Loader2, Microscope, Search, Star, Zap, X
+} from 'lucide-react';
+import { assignmentApi } from '@/lib/api';
+import type { Assignment, GenerationQuestion } from '@/types';
 
 const TABS = [
   { id: 'saved', label: 'Saved Papers', icon: BookMarked },
@@ -10,26 +16,39 @@ const TABS = [
   { id: 'templates', label: 'Templates', icon: Layers }
 ];
 
-const SAVED_PAPERS = [
-  { id: 1, title: 'Quiz on Electricity', subject: 'Science', className: '8', marks: 20, questions: 10, starred: true, date: 'May 24' },
-  { id: 2, title: 'Half-Yearly – Mathematics', subject: 'Mathematics', className: '9', marks: 80, questions: 30, starred: false, date: 'Apr 10' },
-  { id: 3, title: 'Unit Test – Photosynthesis', subject: 'Biology', className: '9', marks: 30, questions: 15, starred: true, date: 'Mar 22' },
-  { id: 4, title: 'Chemistry Practical Assessment', subject: 'Chemistry', className: '10', marks: 25, questions: 12, starred: false, date: 'Mar 5' }
-];
-
-const QUESTION_BANK = [
-  { id: 1, text: 'Define electric current and state its SI unit.', subject: 'Science', type: 'Short', difficulty: 'Easy', marks: 2 },
-  { id: 2, text: 'Explain the process of photosynthesis with a labelled diagram.', subject: 'Biology', type: 'Long', difficulty: 'Medium', marks: 5 },
-  { id: 3, text: 'Solve: 2x + 3y = 12, x − y = 1', subject: 'Mathematics', type: 'Short', difficulty: 'Medium', marks: 3 },
-  { id: 4, text: 'What is electroplating? Give two industrial uses.', subject: 'Science', type: 'Short', difficulty: 'Easy', marks: 2 },
-  { id: 5, text: 'Describe the structure of DNA with a diagram.', subject: 'Biology', type: 'Long', difficulty: 'Hard', marks: 6 }
-];
-
 const TEMPLATES = [
-  { id: 1, name: 'Unit Test (30 marks)', desc: '10 MCQ + 5 Short + 2 Long', subject: 'Any', icon: BookMarked, color: 'bg-violet-50 text-violet-600' },
-  { id: 2, name: 'Half-Yearly (80 marks)', desc: '20 MCQ + 10 Short + 5 Long + 2 Case Study', subject: 'Any', icon: BookOpen, color: 'bg-blue-50 text-blue-600' },
-  { id: 3, name: 'Quick Quiz (20 marks)', desc: '5 MCQ + 5 Short Answer', subject: 'Any', icon: Zap, color: 'bg-amber-50 text-amber-600' },
-  { id: 4, name: 'Practical Assessment', desc: '5 Observation + 3 Short + 1 Long', subject: 'Science', icon: Microscope, color: 'bg-emerald-50 text-emerald-600' }
+  {
+    id: 'unit_test',
+    name: 'Unit Test (30 marks)',
+    desc: '10 MCQ + 5 Short + 2 Long',
+    subject: 'Any',
+    icon: BookMarked,
+    color: 'bg-violet-50 text-violet-600'
+  },
+  {
+    id: 'half_yearly',
+    name: 'Half-Yearly (80 marks)',
+    desc: '20 MCQ + 10 Short + 5 Long + 2 Case Study',
+    subject: 'Any',
+    icon: BookOpen,
+    color: 'bg-blue-50 text-blue-600'
+  },
+  {
+    id: 'quick_quiz',
+    name: 'Quick Quiz (20 marks)',
+    desc: '5 MCQ + 5 Short Answer',
+    subject: 'Any',
+    icon: Zap,
+    color: 'bg-amber-50 text-amber-600'
+  },
+  {
+    id: 'practical',
+    name: 'Practical Assessment',
+    desc: '5 Short + 2 Long',
+    subject: 'Science',
+    icon: Microscope,
+    color: 'bg-emerald-50 text-emerald-600'
+  }
 ];
 
 const DIFF_COLOR: Record<string, string> = {
@@ -38,12 +57,50 @@ const DIFF_COLOR: Record<string, string> = {
   Hard: 'bg-red-100 text-red-700'
 };
 
+const SUBJECTS = ['All Subjects', 'Science', 'Mathematics', 'Biology', 'Chemistry', 'Physics', 'English', 'History'];
+
+interface ExtractedQuestion extends GenerationQuestion {
+  subject: string;
+  assignmentTitle: string;
+}
+
+async function downloadPdf(externalId: string, title: string) {
+  const response = await assignmentApi.exportPdf(externalId);
+  const blob = new Blob([response.data as BlobPart], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${title}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export default function LibraryPage() {
+  const router = useRouter();
   const [tab, setTab] = useState('saved');
   const [search, setSearch] = useState('');
-  const [starred, setStarred] = useState<Set<number>>(new Set([1, 3]));
+  const [subjectFilter, setSubjectFilter] = useState('All Subjects');
+  const [showFilter, setShowFilter] = useState(false);
+  const [starred, setStarred] = useState<Set<string>>(new Set());
+  const [downloading, setDownloading] = useState<string | null>(null);
 
-  function toggleStar(id: number) {
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
+
+  useEffect(() => {
+    assignmentApi.list()
+      .then(({ data }) => {
+        const list: Assignment[] = data.data ?? data ?? [];
+        setAssignments(list);
+      })
+      .catch(() => setFetchError('Could not load your library. Please refresh.'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  function toggleStar(id: string) {
     setStarred((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -51,13 +108,54 @@ export default function LibraryPage() {
     });
   }
 
-  const filteredPapers = SAVED_PAPERS.filter((p) =>
-    p.title.toLowerCase().includes(search.toLowerCase()) || p.subject.toLowerCase().includes(search.toLowerCase())
+  async function handleDownload(assignment: Assignment) {
+    setDownloading(assignment.externalId);
+    try {
+      await downloadPdf(assignment.externalId, assignment.title);
+    } catch {
+      alert('PDF not available yet. Please wait until the assessment is fully generated.');
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+  function useTemplate(templateId: string) {
+    router.push(`/create-assignment?template=${templateId}`);
+  }
+
+  const completedAssignments = assignments.filter((a) => a.status === 'COMPLETED');
+
+  const filteredPapers = completedAssignments.filter((a) => {
+    const matchesSearch =
+      a.title.toLowerCase().includes(search.toLowerCase()) ||
+      a.subject.toLowerCase().includes(search.toLowerCase());
+    const matchesSubject =
+      subjectFilter === 'All Subjects' || a.subject.toLowerCase() === subjectFilter.toLowerCase();
+    return matchesSearch && matchesSubject;
+  });
+
+  const allQuestions: ExtractedQuestion[] = completedAssignments.flatMap((a) =>
+    (a.generatedAssessment?.sections ?? []).flatMap((s) =>
+      s.questions.map((q) => ({ ...q, subject: a.subject, assignmentTitle: a.title }))
+    )
   );
 
-  const filteredQuestions = QUESTION_BANK.filter((q) =>
-    q.text.toLowerCase().includes(search.toLowerCase()) || q.subject.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredQuestions = allQuestions.filter((q) => {
+    const matchesSearch =
+      q.question.toLowerCase().includes(search.toLowerCase()) ||
+      q.subject.toLowerCase().includes(search.toLowerCase());
+    const matchesSubject =
+      subjectFilter === 'All Subjects' || q.subject.toLowerCase() === subjectFilter.toLowerCase();
+    return matchesSearch && matchesSubject;
+  });
+
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function totalQuestions(a: Assignment) {
+    return (a.generatedAssessment?.sections ?? []).reduce((s, sec) => s + sec.questions.length, 0);
+  }
 
   return (
     <Shell title="My Library" titleIcon={Clock3}>
@@ -79,9 +177,27 @@ export default function LibraryPage() {
                 className="h-11 w-64 rounded-full border border-neutral-200 bg-white pl-11 pr-5 text-[14px] outline-none focus:border-[#ff6a2b] focus:ring-2 focus:ring-[#ff6a2b]/20"
               />
             </div>
-            <button className="grid h-11 w-11 place-items-center rounded-full border border-neutral-200 bg-white text-neutral-500 hover:text-[#1f1f1f]">
-              <Filter className="h-4 w-4" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowFilter((v) => !v)}
+                className={`grid h-11 w-11 place-items-center rounded-full border bg-white transition ${showFilter || subjectFilter !== 'All Subjects' ? 'border-[#ff6a2b] text-[#ff6a2b]' : 'border-neutral-200 text-neutral-500 hover:text-[#1f1f1f]'}`}
+              >
+                {subjectFilter !== 'All Subjects' ? <X className="h-4 w-4" onClick={(e) => { e.stopPropagation(); setSubjectFilter('All Subjects'); setShowFilter(false); }} /> : <Filter className="h-4 w-4" />}
+              </button>
+              {showFilter && (
+                <div className="absolute right-0 top-13 z-20 mt-2 w-52 rounded-[20px] bg-white py-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+                  {SUBJECTS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => { setSubjectFilter(s); setShowFilter(false); }}
+                      className={`w-full px-5 py-2.5 text-left text-[14px] transition hover:bg-[#fafafa] ${subjectFilter === s ? 'font-semibold text-[#ff6a2b]' : 'text-neutral-700'}`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -99,55 +215,101 @@ export default function LibraryPage() {
           ))}
         </div>
 
+        {/* Loading */}
+        {loading && tab !== 'templates' && (
+          <div className="flex items-center justify-center py-20 text-neutral-400">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        )}
+
+        {/* Fetch error */}
+        {fetchError && (
+          <div className="rounded-[20px] border border-red-200 bg-red-50 px-5 py-4 text-[14px] text-red-600">{fetchError}</div>
+        )}
+
         {/* Saved Papers */}
-        {tab === 'saved' && (
+        {!loading && tab === 'saved' && (
           <div className="space-y-3">
-            {filteredPapers.map((p) => (
-              <div key={p.id} className="flex items-center gap-4 rounded-[24px] bg-white px-6 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)]">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[14px] bg-neutral-100 text-neutral-500">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-semibold text-[#1f1f1f] truncate">{p.title}</p>
-                  <p className="text-[13px] text-neutral-500">{p.subject} · Class {p.className} · {p.questions} questions · {p.marks} marks</p>
-                </div>
-                <span className="shrink-0 text-[12px] text-neutral-400">{p.date}</span>
-                <button onClick={() => toggleStar(p.id)} className="shrink-0">
-                  <Star className={`h-5 w-5 transition ${starred.has(p.id) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300 hover:text-amber-300'}`} />
-                </button>
-                <button className="shrink-0 grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500 hover:border-[#ff6a2b] hover:text-[#ff6a2b]">
-                  <Download className="h-4 w-4" />
-                </button>
+            {filteredPapers.length === 0 ? (
+              <div className="rounded-[24px] bg-white py-16 text-center shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+                <FileText className="mx-auto mb-3 h-8 w-8 text-neutral-300" />
+                <p className="text-[15px] font-semibold text-neutral-400">
+                  {completedAssignments.length === 0 ? 'No completed assessments yet.' : 'No papers match your search.'}
+                </p>
+                {completedAssignments.length === 0 && (
+                  <p className="mt-1 text-[13px] text-neutral-400">Create your first assessment to see it here.</p>
+                )}
               </div>
-            ))}
-            {filteredPapers.length === 0 && (
-              <div className="rounded-[24px] bg-white py-16 text-center text-neutral-400 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-                No papers match your search.
-              </div>
+            ) : (
+              filteredPapers.map((a) => (
+                <div
+                  key={a.externalId}
+                  className="flex items-center gap-4 rounded-[24px] bg-white px-6 py-4 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)]"
+                >
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[14px] bg-neutral-100 text-neutral-500">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-semibold text-[#1f1f1f] truncate">{a.title}</p>
+                    <p className="text-[13px] text-neutral-500">
+                      {a.subject} · Class {a.className} · {totalQuestions(a)} questions · {a.totalMarks} marks
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-[12px] text-neutral-400">{formatDate(a.createdAt)}</span>
+                  <button onClick={() => toggleStar(a.externalId)} className="shrink-0">
+                    <Star className={`h-5 w-5 transition ${starred.has(a.externalId) ? 'fill-amber-400 text-amber-400' : 'text-neutral-300 hover:text-amber-300'}`} />
+                  </button>
+                  <button
+                    onClick={() => handleDownload(a)}
+                    disabled={downloading === a.externalId}
+                    className="shrink-0 grid h-9 w-9 place-items-center rounded-full border border-neutral-200 text-neutral-500 hover:border-[#ff6a2b] hover:text-[#ff6a2b] disabled:opacity-50 transition"
+                    title="Download PDF"
+                  >
+                    {downloading === a.externalId
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <Download className="h-4 w-4" />
+                    }
+                  </button>
+                </div>
+              ))
             )}
           </div>
         )}
 
         {/* Question Bank */}
-        {tab === 'questions' && (
+        {!loading && tab === 'questions' && (
           <div className="space-y-3">
-            {filteredQuestions.map((q) => (
-              <div key={q.id} className="rounded-[24px] bg-white px-6 py-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)]">
-                <div className="flex items-start justify-between gap-4">
-                  <p className="text-[15px] leading-7 text-[#1f1f1f]">{q.text}</p>
-                  <span className="shrink-0 text-[13px] font-semibold text-neutral-500">({q.marks}M)</span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600">{q.subject}</span>
-                  <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600">{q.type}</span>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[q.difficulty] ?? 'bg-neutral-100 text-neutral-600'}`}>{q.difficulty}</span>
-                </div>
+            {allQuestions.length === 0 ? (
+              <div className="rounded-[24px] bg-white py-16 text-center shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+                <FileText className="mx-auto mb-3 h-8 w-8 text-neutral-300" />
+                <p className="text-[15px] font-semibold text-neutral-400">No questions in your bank yet.</p>
+                <p className="mt-1 text-[13px] text-neutral-400">Questions from completed assessments will appear here.</p>
               </div>
-            ))}
-            {filteredQuestions.length === 0 && (
+            ) : filteredQuestions.length === 0 ? (
               <div className="rounded-[24px] bg-white py-16 text-center text-neutral-400 shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
                 No questions match your search.
               </div>
+            ) : (
+              filteredQuestions.map((q, idx) => (
+                <div
+                  key={`${q.id}-${idx}`}
+                  className="rounded-[24px] bg-white px-6 py-5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)]"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-[15px] leading-7 text-[#1f1f1f]">{q.question}</p>
+                    <span className="shrink-0 text-[13px] font-semibold text-neutral-500">({q.marks}M)</span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600">{q.subject}</span>
+                    <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-600">{q.type}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${DIFF_COLOR[q.difficulty] ?? 'bg-neutral-100 text-neutral-600'}`}>{q.difficulty}</span>
+                    {q.blooms_level && (
+                      <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-600">{q.blooms_level}</span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-[12px] text-neutral-400">From: {q.assignmentTitle}</p>
+                </div>
+              ))
             )}
           </div>
         )}
@@ -156,14 +318,20 @@ export default function LibraryPage() {
         {tab === 'templates' && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {TEMPLATES.map((t) => (
-              <div key={t.id} className="group rounded-[28px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)] hover:-translate-y-0.5 cursor-pointer">
+              <div
+                key={t.id}
+                className="group rounded-[28px] bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition hover:shadow-[0_4px_18px_rgba(0,0,0,0.09)] hover:-translate-y-0.5"
+              >
                 <div className={`grid h-12 w-12 place-items-center rounded-[14px] ${t.color}`}>
                   <t.icon className="h-6 w-6" />
                 </div>
                 <h3 className="mt-3 text-[16px] font-semibold text-[#1f1f1f]">{t.name}</h3>
                 <p className="mt-1 text-[13px] text-neutral-500">{t.desc}</p>
                 <span className="mt-3 inline-block rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] text-neutral-500">{t.subject}</span>
-                <button className="mt-4 w-full rounded-full bg-[#1f1f1f] py-2 text-[13px] font-semibold text-white opacity-0 group-hover:opacity-100 transition">
+                <button
+                  onClick={() => useTemplate(t.id)}
+                  className="mt-4 w-full rounded-full bg-[#1f1f1f] py-2 text-[13px] font-semibold text-white opacity-0 group-hover:opacity-100 transition hover:bg-black"
+                >
                   Use Template
                 </button>
               </div>

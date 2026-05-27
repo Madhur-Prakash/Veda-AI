@@ -16,6 +16,40 @@ const DEFAULT_CONTROLS: QuestionControl[] = [
   { type: 'Short', count: 4, marks: 3, difficultyDistribution: { easy: 30, medium: 50, hard: 20 } }
 ];
 
+const TEMPLATE_PRESETS: Record<string, { totalMarks: number; durationMinutes: number; controls: QuestionControl[] }> = {
+  unit_test: {
+    totalMarks: 30, durationMinutes: 45,
+    controls: [
+      { type: 'MCQ',   count: 10, marks: 1, difficultyDistribution: { easy: 40, medium: 40, hard: 20 } },
+      { type: 'Short', count: 5,  marks: 2, difficultyDistribution: { easy: 30, medium: 50, hard: 20 } },
+      { type: 'Long',  count: 2,  marks: 5, difficultyDistribution: { easy: 20, medium: 50, hard: 30 } }
+    ]
+  },
+  half_yearly: {
+    totalMarks: 80, durationMinutes: 120,
+    controls: [
+      { type: 'MCQ',        count: 20, marks: 1, difficultyDistribution: { easy: 40, medium: 40, hard: 20 } },
+      { type: 'Short',      count: 10, marks: 2, difficultyDistribution: { easy: 30, medium: 50, hard: 20 } },
+      { type: 'Long',       count: 5,  marks: 6, difficultyDistribution: { easy: 20, medium: 50, hard: 30 } },
+      { type: 'Case Study', count: 2,  marks: 5, difficultyDistribution: { easy: 10, medium: 60, hard: 30 } }
+    ]
+  },
+  quick_quiz: {
+    totalMarks: 20, durationMinutes: 30,
+    controls: [
+      { type: 'MCQ',   count: 5, marks: 1, difficultyDistribution: { easy: 50, medium: 40, hard: 10 } },
+      { type: 'Short', count: 5, marks: 3, difficultyDistribution: { easy: 40, medium: 50, hard: 10 } }
+    ]
+  },
+  practical: {
+    totalMarks: 25, durationMinutes: 60,
+    controls: [
+      { type: 'Short', count: 5, marks: 3, difficultyDistribution: { easy: 30, medium: 50, hard: 20 } },
+      { type: 'Long',  count: 2, marks: 5, difficultyDistribution: { easy: 20, medium: 50, hard: 30 } }
+    ]
+  }
+};
+
 function DifficultySliders({ dist, onChange }: { dist: QuestionControl['difficultyDistribution']; onChange: (d: QuestionControl['difficultyDistribution']) => void }) {
   const total = dist.easy + dist.medium + dist.hard;
   const isValid = total === 100;
@@ -91,6 +125,15 @@ export default function CreateAssignmentPage() {
       ...(lang ? { language: lang } : {}),
       ...(dur && !isNaN(Number(dur)) ? { durationMinutes: Number(dur) } : {})
     }));
+
+    // Apply template preset from ?template= URL param (set by Library → Use Template)
+    const params = new URLSearchParams(window.location.search);
+    const templateId = params.get('template');
+    if (templateId && TEMPLATE_PRESETS[templateId]) {
+      const preset = TEMPLATE_PRESETS[templateId];
+      setForm((f) => ({ ...f, totalMarks: preset.totalMarks, durationMinutes: preset.durationMinutes }));
+      setControls(preset.controls);
+    }
   }, []);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

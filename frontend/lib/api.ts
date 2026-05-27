@@ -42,5 +42,10 @@ export const assignmentApi = {
   get: (id: string) => api.get(`/assignments/${id}`),
   create: (body: unknown) => api.post('/assignments', body),
   regenerate: (id: string, notes?: string) => api.post(`/assignments/${id}/regenerate`, { notes }),
-  dashboard: () => api.get('/dashboard/summary')
+  dashboard: () => api.get('/dashboard/summary'),
+  exportPdf: (id: string) => api.get(`/assignments/${id}/export/pdf`, { responseType: 'blob' })
+};
+
+export const toolkitApi = {
+  run: (toolId: string, prompt: string) => api.post('/toolkit/run', { toolId, prompt })
 };

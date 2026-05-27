@@ -8,7 +8,8 @@ import {
   regenerateAssignmentSchema,
   registerSchema,
   loginSchema,
-  updateProfileSchema
+  updateProfileSchema,
+  toolkitSchema
 } from '@/api/validators.js';
 import {
   createAssignment,
@@ -19,6 +20,7 @@ import {
   regenerateAssignment
 } from '@/api/assignment.controller.js';
 import { register, login, refresh, logout, getMe, updateMe } from '@/api/auth.controller.js';
+import { runTool } from '@/api/toolkit.controller.js';
 
 export const apiRouter = Router();
 const generationRateLimit = createRateLimitMiddleware({
@@ -47,3 +49,6 @@ apiRouter.get('/assignments/:id', requireAuth, asyncHandler(getAssignment));
 apiRouter.post('/assignments', requireAuth, generationRateLimit, validateBody(createAssignmentSchema), asyncHandler(createAssignment));
 apiRouter.post('/assignments/:id/regenerate', requireAuth, generationRateLimit, validateBody(regenerateAssignmentSchema), asyncHandler(regenerateAssignment));
 apiRouter.get('/assignments/:id/export/pdf', requireAuth, asyncHandler(exportPdf));
+
+// Toolkit routes
+apiRouter.post('/toolkit/run', requireAuth, generationRateLimit, validateBody(toolkitSchema), asyncHandler(runTool));
