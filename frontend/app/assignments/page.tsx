@@ -28,21 +28,21 @@ function AssignmentCard({ assignment, onMenuToggle, menuOpen }: { assignment: As
   }
 
   return (
-    <article className="relative min-h-[196px] rounded-[28px] bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+    <article className="relative min-h-[156px] md:min-h-[196px] rounded-[20px] md:rounded-[28px] bg-white p-4 md:p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <button onClick={navigate} className="text-left">
-            <h2 className="font-display text-[22px] font-semibold tracking-tight underline decoration-2 underline-offset-4 truncate hover:text-[#ff6a2b]">
+            <h2 className="font-display text-[18px] md:text-[22px] font-semibold tracking-tight underline decoration-2 underline-offset-4 truncate hover:text-[#ff6a2b]">
               {assignment.title}
             </h2>
           </button>
-          <p className="mt-1 truncate text-[14px] text-neutral-500">{assignment.subject} · {assignment.className}</p>
+          <p className="mt-1 truncate text-[13px] md:text-[14px] text-neutral-500">{assignment.subject} · {assignment.className}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${badge.bg} ${badge.text}`}>
             {badge.label}
           </span>
-          <button className="rounded-full p-1 text-neutral-400 hover:bg-black/[0.04] hover:text-[#1f1f1f]" onClick={(e) => { e.stopPropagation(); onMenuToggle?.(e); }}>
+          <button className="rounded-full p-2 md:p-1 text-neutral-400 hover:bg-black/[0.04] hover:text-[#1f1f1f]" onClick={(e) => { e.stopPropagation(); onMenuToggle?.(e); }} aria-label="Open menu">
             <MoreVertical className="h-5 w-5" />
           </button>
         </div>
@@ -54,7 +54,7 @@ function AssignmentCard({ assignment, onMenuToggle, menuOpen }: { assignment: As
       </div>
 
       {menuOpen && (
-        <div className="absolute right-14 top-[72px] z-10 w-48 rounded-[18px] bg-white p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
+        <div className="absolute right-4 md:right-14 top-[64px] md:top-[72px] z-10 w-44 md:w-48 rounded-[14px] md:rounded-[18px] bg-white p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
           <Link href={`/assessment/${assignment.externalId}`} className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-[15px] text-[#1f1f1f] hover:bg-black/[0.04]">
             <FileText className="h-4 w-4" /> View Assessment
           </Link>
@@ -113,7 +113,7 @@ export default function AssignmentsPage() {
             fixture={<AssignmentsGridFixture />}
             fallback={<AssignmentsGridFallback />}
           >
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
               {filtered.map((a) => (
                 <AssignmentCard
                   key={a.externalId}
@@ -132,7 +132,7 @@ export default function AssignmentsPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             {filtered.map((a) => (
               <AssignmentCard
                 key={a.externalId}
@@ -147,7 +147,7 @@ export default function AssignmentsPage() {
           </div>
         )}
 
-        <div className="fixed bottom-20 left-1/2 z-20 -translate-x-1/2 lg:bottom-5">
+        <div className="fixed bottom-24 md:bottom-20 left-1/2 z-20 -translate-x-1/2 lg:bottom-5">
           <Link href="/create-assignment">
             <Button className="h-14 rounded-full px-7 text-[16px] shadow-[0_4px_20px_rgba(0,0,0,0.18)]">
               <Plus className="h-5 w-5" /> Create Assignment
