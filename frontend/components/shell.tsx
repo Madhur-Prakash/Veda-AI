@@ -120,14 +120,14 @@ export function Shell({ children, title: titleProp, titleIcon: TitleIcon = Layou
               <Settings className="h-5 w-5" />
               <span>Settings</span>
             </Link>
-            <div className="rounded-[24px] bg-[#f4f3f2] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-              <div className="flex items-center gap-3">
-                <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#fde5d8] text-[22px] font-bold text-[#ff6a2b]">
+            <div className="rounded-[18px] bg-[#f4f3f2] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fde5d8] text-[15px] font-bold text-[#ff6a2b]">
                   {initials}
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate font-semibold">{user?.name ?? 'Teacher'}</div>
-                  <div className="truncate text-sm text-neutral-500">{user?.school || user?.email || ''}</div>
+                  <div className="truncate text-[13px] font-semibold leading-tight">{user?.name ?? 'Teacher'}</div>
+                  <div className="truncate text-[12px] leading-tight text-neutral-500">{user?.school || user?.email || ''}</div>
                 </div>
               </div>
             </div>
