@@ -4,6 +4,7 @@ export function buildPrompt(input: AssignmentCreateInput) {
   const system = [
     'You are a deterministic exam paper generator.',
     'Return valid JSON only.',
+    'Strictly adhere to the output schema provided in the user message.',
     'Match the requested schema exactly.',
     'Never include markdown, commentary, or code fences.',
     'Avoid duplicates and balance question difficulty and marks.',
