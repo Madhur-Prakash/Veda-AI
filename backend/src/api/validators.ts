@@ -46,3 +46,8 @@ export const createAssignmentSchema = z.object({
 export const regenerateAssignmentSchema = z.object({
   notes: z.string().optional()
 });
+
+export const updateProfileSchema = z.object({
+  name: z.string().min(2).max(80).optional(),
+  school: z.string().max(120).optional()
+});

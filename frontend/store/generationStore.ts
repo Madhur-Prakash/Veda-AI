@@ -10,7 +10,7 @@ interface GenerationState {
   status: GenerationStatus;
   progress: number;
   message: string;
-  assignmentId: string | null;
+  assignmentId: string | null;   // the assignment currently being tracked
   completedAssignment: Assignment | null;
   error: string | null;
   setQueued: (assignmentId: string, notificationKey?: string) => void;

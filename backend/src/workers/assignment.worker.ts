@@ -19,6 +19,8 @@ function emitProgress(assignmentExternalId: string, progress: number, message: s
   emitAssignmentEvent('generation.progress', { assignmentExternalId, progress, message });
 }
 
+function sleep(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)); }
+
 export const assignmentWorker = new Worker(
   'assignments',
   async (job) => {
@@ -32,27 +34,36 @@ export const assignmentWorker = new Worker(
 
     emitAssignmentEvent('generation.started', { assignmentExternalId, jobId: String(job.id) });
     emitProgress(assignmentExternalId, 10, 'Starting generation');
+    await sleep(400);
 
-    emitProgress(assignmentExternalId, 25, 'Building AI prompt');
+    emitProgress(assignmentExternalId, 20, 'Building AI prompt');
+    await sleep(600);
+
+    // Emit "Generating questions" before the AI call so the step is visible during the wait
+    emitProgress(assignmentExternalId, 40, 'Generating questions');
     const assessment = await assignmentService.generateNow(input);
 
-    emitProgress(assignmentExternalId, 45, 'Generating questions');
-
+    // Space out the remaining steps so each one is visible on the frontend
+    await sleep(700);
     await GenerationJobModel.findOneAndUpdate(
       { jobId: String(job.id) },
-      { state: 'PROCESSING', progress: 75, message: 'Validating and saving' }
+      { state: 'PROCESSING', progress: 70, message: 'Validating output' }
     );
     emitProgress(assignmentExternalId, 70, 'Validating output');
+
+    await sleep(800);
     emitProgress(assignmentExternalId, 90, 'Saving assessment');
 
     const assignment = await assignmentService.completeGeneration(assignmentExternalId, assessment);
 
+    await sleep(600);
     await GenerationJobModel.findOneAndUpdate(
       { jobId: String(job.id) },
       { state: 'COMPLETED', progress: 100, message: 'Generation completed' }
     );
-
     emitProgress(assignmentExternalId, 100, 'Generation completed');
+
+    await sleep(300);
     emitAssignmentEvent('generation.completed', { assignmentExternalId, assignment: assignment.toObject() });
     emitAssignmentEvent('pdf.generated', { assignmentExternalId, pdfUrl: assignment.pdfUrl ?? '' });
 

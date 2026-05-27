@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bot, Mic, Plus, Trash2, UploadCloud, X } from 'lucide-react';
 import { Shell } from '@/components/shell';
@@ -81,6 +81,17 @@ export default function CreateAssignmentPage() {
   });
   const [controls, setControls] = useState<QuestionControl[]>(DEFAULT_CONTROLS);
   const [dragOver, setDragOver] = useState(false);
+
+  // Seed defaults from Settings preferences once the component mounts on the client
+  useEffect(() => {
+    const lang = localStorage.getItem('vedaai_default_language');
+    const dur = localStorage.getItem('vedaai_default_duration');
+    setForm((f) => ({
+      ...f,
+      ...(lang ? { language: lang } : {}),
+      ...(dur && !isNaN(Number(dur)) ? { durationMinutes: Number(dur) } : {})
+    }));
+  }, []);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -228,25 +228,27 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
 
           <p className="mt-12 text-center text-[14px] font-semibold text-neutral-500">— End of Question Paper —</p>
 
-          {/* Answer Key */}
-          <div className="mt-12 border-t border-neutral-200 pt-10">
-            <h3 className="text-[20px] font-semibold md:text-[26px]">Answer Key</h3>
-            <div className="mt-6 space-y-8">
-              {currentAssessment.sections.map((section, si) => (
-                <div key={si}>
-                  <h4 className="mb-3 text-[16px] font-semibold text-neutral-600">{section.title}</h4>
-                  <ol className="space-y-3">
-                    {section.questions.map((q, qi) => (
-                      <li key={q.id ?? qi} className="rounded-[16px] bg-[#fafafa] px-4 py-3 text-[14px] leading-7">
-                        <span className="font-bold text-[#ff6a2b]">Q{qi + 1}.</span>{' '}
-                        <span className="text-neutral-700">{q.answer_key}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              ))}
+          {/* Answer Key — only shown when answers are toggled on */}
+          {showAnswers && (
+            <div className="mt-12 border-t border-neutral-200 pt-10">
+              <h3 className="text-[20px] font-semibold md:text-[26px]">Answer Key</h3>
+              <div className="mt-6 space-y-8">
+                {currentAssessment.sections.map((section, si) => (
+                  <div key={si}>
+                    <h4 className="mb-3 text-[16px] font-semibold text-neutral-600">{section.title}</h4>
+                    <ol className="space-y-3">
+                      {section.questions.map((q, qi) => (
+                        <li key={q.id ?? qi} className="rounded-[16px] bg-[#fafafa] px-4 py-3 text-[14px] leading-7">
+                          <span className="font-bold text-[#ff6a2b]">Q{qi + 1}.</span>{' '}
+                          <span className="text-neutral-700">{q.answer_key}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Stats */}
           <div className="mt-12 grid gap-4 rounded-[28px] bg-[#fafafa] p-5 md:grid-cols-4">

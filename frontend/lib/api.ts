@@ -8,16 +8,9 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
-// Attach token from localStorage on every request
-api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('accessToken');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Cookies are sent automatically via withCredentials — no manual token injection needed.
 
-// On 401, try refresh then retry once
+// On 401, try refresh (sets new accessToken cookie server-side) then retry once
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
@@ -25,13 +18,9 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && !original._retry) {
       original._retry = true;
       try {
-        const { data } = await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true });
-        const newToken = data.data.accessToken as string;
-        localStorage.setItem('accessToken', newToken);
-        original.headers.Authorization = `Bearer ${newToken}`;
+        await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true });
         return api(original);
       } catch {
-        localStorage.removeItem('accessToken');
         if (typeof window !== 'undefined') window.location.href = '/auth/login';
       }
     }
@@ -44,7 +33,8 @@ export const authApi = {
     api.post('/auth/register', body),
   login: (body: { email: string; password: string }) => api.post('/auth/login', body),
   logout: () => api.post('/auth/logout'),
-  me: () => api.get('/auth/me')
+  me: () => api.get('/auth/me'),
+  updateProfile: (body: { name?: string; school?: string }) => api.patch('/auth/me', body)
 };
 
 export const assignmentApi = {

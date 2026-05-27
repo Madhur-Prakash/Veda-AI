@@ -6,12 +6,15 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  // Prefer httpOnly cookie; fall back to Bearer header for API clients / tests
+  const cookieToken = req.cookies?.accessToken as string | undefined;
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
-    return res.status(401).json({ error: { message: 'Missing authorization header', statusCode: 401 } });
+  const token = cookieToken ?? (header?.startsWith('Bearer ') ? header.slice(7) : undefined);
+
+  if (!token) {
+    return res.status(401).json({ error: { message: 'Not authenticated', statusCode: 401 } });
   }
 
-  const token = header.slice(7);
   try {
     const payload = verifyToken(token);
     (req as AuthenticatedRequest).user = payload;

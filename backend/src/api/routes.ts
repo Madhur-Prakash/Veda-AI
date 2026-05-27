@@ -7,7 +7,8 @@ import {
   createAssignmentSchema,
   regenerateAssignmentSchema,
   registerSchema,
-  loginSchema
+  loginSchema,
+  updateProfileSchema
 } from '@/api/validators.js';
 import {
   createAssignment,
@@ -17,12 +18,12 @@ import {
   listAssignments,
   regenerateAssignment
 } from '@/api/assignment.controller.js';
-import { register, login, refresh, logout, getMe } from '@/api/auth.controller.js';
+import { register, login, refresh, logout, getMe, updateMe } from '@/api/auth.controller.js';
 
 export const apiRouter = Router();
 const generationRateLimit = createRateLimitMiddleware({
   keyPrefix: 'groq:generation',
-  limit: 5,
+  limit: 5, // allow 5 generation requests per window per user/IP
   windowMs: 10 * 60 * 1000, // 10 minutes
   message: 'Too many assessment generation requests.'
 });
@@ -37,6 +38,7 @@ apiRouter.post('/auth/login', validateBody(loginSchema), asyncHandler(login));
 apiRouter.post('/auth/refresh', asyncHandler(refresh));
 apiRouter.post('/auth/logout', requireAuth, asyncHandler(logout));
 apiRouter.get('/auth/me', requireAuth, asyncHandler(getMe));
+apiRouter.patch('/auth/me', requireAuth, validateBody(updateProfileSchema), asyncHandler(updateMe));
 
 // Protected assignment routes
 apiRouter.get('/dashboard/summary', requireAuth, asyncHandler(getDashboardSummary));

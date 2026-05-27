@@ -22,24 +22,29 @@ function GenerationStatusContent() {
   const searchParams = useSearchParams();
   const assignmentId = searchParams.get('id') ?? '';
 
-  const { status, progress, message, completedAssignment, error, reset, setQueued } = useGenerationStore();
+  const { status, progress, message, completedAssignment, error, reset, setQueued, assignmentId: trackingId } = useGenerationStore();
 
   useSocket(assignmentId);
 
   useEffect(() => {
-    if (assignmentId && status === 'idle') {
+    if (!assignmentId) return;
+    // Reset and re-queue if the store is tracking a different assignment or is idle
+    if (status === 'idle' || trackingId !== assignmentId) {
+      if (trackingId !== assignmentId) reset();
       setQueued(assignmentId);
     }
-  }, [assignmentId, status, setQueued]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignmentId]);
 
   useEffect(() => {
-    if (status === 'completed' && completedAssignment) {
+    // Guard: only redirect when the completed assignment matches the current URL's id
+    if (status === 'completed' && completedAssignment && completedAssignment.externalId === assignmentId) {
       const timer = setTimeout(() => {
         router.push(`/assessment/${completedAssignment.externalId}`);
-      }, 1500);
+      }, 2500);
       return () => clearTimeout(timer);
     }
-  }, [status, completedAssignment, router]);
+  }, [status, completedAssignment, router, assignmentId]);
 
   const activeStep = STEPS.filter((s) => progress >= s.threshold).length - 1;
 

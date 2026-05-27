@@ -85,6 +85,16 @@ export class AuthService {
     return this.sanitize(user);
   }
 
+  async updateProfile(userId: string, data: { name?: string; school?: string }) {
+    const user = await UserModel.findOneAndUpdate(
+      { externalId: userId },
+      { $set: data },
+      { new: true, runValidators: true }
+    );
+    if (!user) throw new HttpError(404, 'User not found');
+    return this.sanitize(user);
+  }
+
   private sanitize(user: InstanceType<typeof UserModel>) {
     const obj = user.toObject();
     const { passwordHash: _ph, refreshToken: _rt, ...safe } = obj as Record<string, unknown>;

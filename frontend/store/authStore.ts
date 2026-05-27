@@ -7,7 +7,6 @@ import { authApi } from '@/lib/api';
 
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
   isLoading: boolean;
   error: string | null;
   hasHydrated: boolean;
@@ -15,7 +14,7 @@ interface AuthState {
   register: (name: string, email: string, password: string, school?: string) => Promise<void>;
   logout: () => Promise<void>;
   loadMe: () => Promise<void>;
-  setToken: (token: string) => void;
+  updateProfile: (data: { name?: string; school?: string }) => Promise<void>;
   clearError: () => void;
 }
 
@@ -23,23 +22,15 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      accessToken: null,
       isLoading: false,
       error: null,
       hasHydrated: false,
-
-      setToken: (token) => {
-        set({ accessToken: token });
-        if (typeof window !== 'undefined') localStorage.setItem('accessToken', token);
-      },
 
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
           const { data } = await authApi.login({ email, password });
-          const { user, accessToken } = data.data;
-          if (typeof window !== 'undefined') localStorage.setItem('accessToken', accessToken);
-          set({ user, accessToken, isLoading: false });
+          set({ user: data.data.user, isLoading: false });
         } catch (err: unknown) {
           const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ?? 'Login failed';
           set({ error: message, isLoading: false });
@@ -51,9 +42,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const { data } = await authApi.register({ name, email, password, school });
-          const { user, accessToken } = data.data;
-          if (typeof window !== 'undefined') localStorage.setItem('accessToken', accessToken);
-          set({ user, accessToken, isLoading: false });
+          set({ user: data.data.user, isLoading: false });
         } catch (err: unknown) {
           const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ?? 'Registration failed';
           set({ error: message, isLoading: false });
@@ -63,8 +52,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try { await authApi.logout(); } catch { /* ignore */ }
-        if (typeof window !== 'undefined') localStorage.removeItem('accessToken');
-        set({ user: null, accessToken: null });
+        set({ user: null });
       },
 
       loadMe: async () => {
@@ -73,7 +61,19 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await authApi.me();
           set({ user: data.data, isLoading: false });
         } catch {
-          set({ user: null, accessToken: null, isLoading: false });
+          set({ user: null, isLoading: false });
+        }
+      },
+
+      updateProfile: async (data) => {
+        set({ isLoading: true, error: null });
+        try {
+          const { data: res } = await authApi.updateProfile(data);
+          set({ user: res.data, isLoading: false });
+        } catch (err: unknown) {
+          const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message ?? 'Update failed';
+          set({ error: message, isLoading: false });
+          throw err;
         }
       },
 
@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'vedaai-auth',
-      partialize: (state) => ({ accessToken: state.accessToken, user: state.user }),
+      partialize: (state) => ({ user: state.user }),
       onRehydrateStorage: () => () => {
         useAuthStore.setState({ hasHydrated: true });
       }
