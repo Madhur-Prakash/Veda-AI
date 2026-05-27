@@ -141,9 +141,11 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
   }
 
   const currentAssessment = assessment;
+  console.log('a:', a);
+  console.log('Current assessment:', currentAssessment);
 
   /* ── school name derived from title or fallback ── */
-  const schoolName = a.schoolName ?? 'School Name';
+  const schoolName = a.schoolName ?? "Delhi Public School, Sector-4, Bokaro";
 
   return (
     <Shell title={a.title} titleIcon={FileText}>
@@ -238,9 +240,9 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* ── General instruction ── */}
-          {currentAssessment.instructions && (
-            <p className="mt-3 text-[14px] font-bold text-[#1a1a1a]">
-              {currentAssessment.instructions}
+          {currentAssessment.sections && (
+            <p className="mt-3 text-[14px] font-extrabold text-[#1a1a1a]">
+              {a.instructions? a.instructions : 'All questions are compulsory unless stated otherwise.'}
             </p>
           )}
 
@@ -268,9 +270,9 @@ export default function AssessmentPage({ params }: { params: Promise<{ id: strin
                     {section.instruction}
                   </p>
                 )}
-                {section.marksPerQuestion && (
+                {section.questions && (
                   <p className="mt-0.5 text-[13px] font-semibold italic text-neutral-600">
-                    Each question carries {section.marksPerQuestion} mark{section.marksPerQuestion !== 1 ? 's' : ''}.
+                    Each question carries {section.questions[0]?.marks ?? 1} mark{section.questions[0]?.marks !== 1 ? 's' : ''}.
                   </p>
                 )}
               </div>

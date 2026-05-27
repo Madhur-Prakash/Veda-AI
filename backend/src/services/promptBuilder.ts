@@ -6,7 +6,8 @@ export function buildPrompt(input: AssignmentCreateInput) {
     'Return valid JSON only.',
     'Match the requested schema exactly.',
     'Never include markdown, commentary, or code fences.',
-    'Avoid duplicates and balance question difficulty and marks.'
+    'Avoid duplicates and balance question difficulty and marks.',
+    'Name sections strictly as Section A, Section B, Section C, and so on. Do not use alternative labels like Part, Unit, or Chapter.'
   ].join(' ');
 
   const user = {

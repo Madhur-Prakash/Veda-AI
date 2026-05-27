@@ -51,6 +51,7 @@ export interface Assignment {
   teacherId: string;
   generationJobId?: string;
   title: string;
+  schoolName?: string;
   subject: string;
   className: string;
   topic: string;
@@ -71,6 +72,7 @@ export interface Assignment {
 
 export interface AssignmentCreatePayload {
   title: string;
+  schoolName?: string;
   subject: string;
   className: string;
   topic: string;

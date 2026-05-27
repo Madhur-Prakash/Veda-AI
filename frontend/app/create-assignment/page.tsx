@@ -103,7 +103,7 @@ export default function CreateAssignmentPage() {
   const { setQueued } = useGenerationStore();
 
   const [form, setForm] = useState({
-    title: '',
+    schoolName: 'Delhi Public School, Sector-4, Bokaro',
     subject: '',
     className: '',
     topic: '',
@@ -147,7 +147,7 @@ export default function CreateAssignmentPage() {
 
   function validate(): boolean {
     const e: Record<string, string> = {};
-    if (!form.title.trim()) e.title = 'Title is required';
+    if (!form.schoolName.trim()) e.schoolName = 'School name is required';
     if (!form.subject.trim()) e.subject = 'Subject is required';
     if (!form.className.trim()) e.className = 'Class is required';
     if (!form.topic.trim()) e.topic = 'Topic is required';
@@ -190,8 +190,10 @@ export default function CreateAssignmentPage() {
     setIsSubmitting(true);
     try {
       const dueDate = new Date(form.dueDate).toISOString();
+      const title = `${form.subject.trim()} - ${form.topic.trim()} Question Paper`;
       const payload = {
-        title: form.title,
+        title,
+        schoolName: form.schoolName,
         subject: form.subject,
         className: form.className,
         topic: form.topic,
@@ -271,7 +273,7 @@ export default function CreateAssignmentPage() {
             {/* Basic Info Grid */}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               {[
-                { key: 'title', label: 'Assignment Title', placeholder: 'e.g. Mid-Term Science Test' },
+                { key: 'schoolName', label: 'School Name', placeholder: 'e.g. Delhi Public School, Sector-4, Bokaro' },
                 { key: 'subject', label: 'Subject', placeholder: 'e.g. Science' },
                 { key: 'className', label: 'Class / Grade', placeholder: 'e.g. Grade 8' },
                 { key: 'topic', label: 'Topic / Chapter', placeholder: 'e.g. Force and Motion' }

@@ -28,6 +28,7 @@ export type GeneratedAssessment = {
 export type AssignmentCreateInput = {
   teacherId: string;
   title: string;
+  schoolName?: string;
   subject: string;
   className: string;
   topic: string;
@@ -37,8 +38,6 @@ export type AssignmentCreateInput = {
   inputSource: 'pdf' | 'txt' | 'paste';
   content?: string;
   instructions?: string;
-  learningOutcomes?: string[];
-  bloomTaxonomy?: string[];
   language?: string;
   strictMode?: boolean;
   questionControls: Array<{

@@ -110,6 +110,10 @@ export default function OutputPage() {
           <section className="paper-shadow mt-4 rounded-[34px] bg-white px-8 py-9 md:px-16 md:py-12">
             <div className="text-center">
               <h1 className="font-display text-[28px] font-semibold tracking-tight md:text-[40px]">
+                {assignment.schoolName ?? 'Delhi Public School, Sector-4, Bokaro'}
+              </h1>
+              <p className="mt-1 text-[14px] italic text-neutral-500 md:text-[16px]">Question Paper</p>
+              <h1 className="font-display text-[28px] font-semibold tracking-tight md:text-[40px]">
                 {assignment.title}
               </h1>
               <p className="mt-1 text-[18px] font-semibold md:text-[28px]">Subject: {assignment.subject}</p>

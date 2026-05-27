@@ -27,6 +27,7 @@ const questionControlSchema = z.object({
 
 export const createAssignmentSchema = z.object({
   title: z.string().min(3).max(120),
+  schoolName: z.string().min(2).max(120).optional(),
   subject: z.string().min(2).max(80),
   className: z.string().min(1).max(40),
   topic: z.string().min(2).max(160),
@@ -36,8 +37,6 @@ export const createAssignmentSchema = z.object({
   inputSource: z.enum(['pdf', 'txt', 'paste']),
   content: z.string().optional(),
   instructions: z.string().optional(),
-  learningOutcomes: z.array(z.string().min(1)).optional(),
-  bloomTaxonomy: z.array(z.string().min(1)).optional(),
   language: z.string().optional(),
   strictMode: z.boolean().optional(),
   questionControls: z.array(questionControlSchema).min(1)
