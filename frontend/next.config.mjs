@@ -7,6 +7,10 @@ const nextConfig = {
       {
         source: '/api/v1/:path*',
         destination: `${backendApiUrl}/api/v1/:path*`
+      },
+      {
+        source: '/socket.io/:path*',
+        destination: `${backendApiUrl}/socket.io/:path*`
       }
     ];
   },
