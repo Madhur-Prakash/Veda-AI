@@ -14,9 +14,16 @@ export type AssignmentEventName =
 
 let io: Server | null = null;
 
+function parseAllowedOrigins(value: string) {
+  return value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 export function initSocket(server: HttpServer) {
   io = new Server(server, {
-    cors: { origin: env.CLIENT_ORIGIN, credentials: true }
+    cors: { origin: parseAllowedOrigins(env.CLIENT_ORIGIN), credentials: true }
   });
 
   io.on('connection', (socket) => {

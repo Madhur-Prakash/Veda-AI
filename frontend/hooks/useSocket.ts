@@ -7,7 +7,10 @@ import { useAssignmentStore } from '@/store/assignmentStore';
 import type { Assignment, GenerationProgressEvent } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim() || '/api/v1';
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL?.trim() || (typeof window !== 'undefined' ? window.location.origin : '');
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL?.trim() ||
+  process.env.NEXT_PUBLIC_API_URL?.trim()?.replace(/\/api\/v1\/?$/, '') ||
+  'http://localhost:4000';
 
 let socket: Socket | null = null;
 
