@@ -86,6 +86,7 @@ VedaAI is a full-stack monorepo with a decoupled Express backend and a Next.js f
 
 5. Browser  →  stores assignment, navigates to /generation-status?id=asmt_xxx
            →  useSocket hook connects and emits join_assignment("asmt_xxx")
+           →  if generation fails, the page retries the same assignment in place using the saved draft
 ```
 
 ---

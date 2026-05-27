@@ -145,7 +145,7 @@ VedaAI/
 │   │   ├── library/page.tsx               Saved papers, question bank, templates
 │   │   ├── groups/page.tsx                Class groups (UI)
 │   │   ├── toolkit/page.tsx               AI tools (UI)
-│   │   └── settings/page.tsx              Settings placeholder
+│   │   └── settings/page.tsx              Profile and generation preferences
 │   ├── components/
 │   │   ├── shell.tsx                      App layout (sidebar + header + auth guard)
 │   │   └── ui/

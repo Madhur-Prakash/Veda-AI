@@ -91,7 +91,7 @@ Every time an assessment is generated or regenerated:
 - `AssignmentDraft` stores the original input payload before generation starts
 
 This means:
-- If generation fails, the draft can be used to retry without the user re-entering data
+- If generation fails, the `/generation-status` page can retry in place using the saved draft, so the teacher does not need to re-enter the original values
 - Future rollback/comparison features can be built without data loss
 - `assignment.version` increments on every successful generation
 
@@ -154,7 +154,7 @@ These pages have full UI but no backend wiring:
 | My Groups | `/groups` | Static group cards with student counts, activity feed |
 | AI Teacher's Toolkit | `/toolkit` | 6 tool cards (Rubric Generator, Bloom's Analyzer, etc.) with a mock 1.2s delay |
 | My Library | `/library` | Saved papers, question bank, templates — all static data |
-| Settings | `/settings` | Placeholder card |
+| Settings | `/settings` | Profile and generation preferences |
 | Output | `/output` | Alternate assessment view, fetches from store but no dedicated backend route |
 
 The Toolkit tools show a simulated response after 1.2 seconds. The actual Groq API calls for these tools are not yet implemented.

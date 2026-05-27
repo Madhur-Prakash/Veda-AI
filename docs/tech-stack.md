@@ -360,7 +360,7 @@ Frontend:
 | `/library` | `app/library/page.tsx` | Saved papers, question bank, templates (UI) |
 | `/groups` | `app/groups/page.tsx` | Class groups management (UI) |
 | `/toolkit` | `app/toolkit/page.tsx` | AI tools: rubric, Bloom's analyzer, etc. (UI) |
-| `/settings` | `app/settings/page.tsx` | Settings placeholder |
+| `/settings` | `app/settings/page.tsx` | Profile and generation preferences |
 
 ---
 
