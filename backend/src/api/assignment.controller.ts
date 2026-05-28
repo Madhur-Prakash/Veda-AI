@@ -43,7 +43,12 @@ export async function getDashboardSummary(req: Request, res: Response) {
 
 export async function regenerateAssignment(req: Request, res: Response) {
   const { userId } = (req as AuthenticatedRequest).user;
-  const result = await assignmentService.regenerate(req.params.id, userId);
+  const rawId = req.params.id;
+  const assignmentId = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!assignmentId) {
+    return res.status(400).json({ error: { message: 'Missing assignment id', statusCode: 400 } });
+  }
+  const result = await assignmentService.regenerate(assignmentId, userId);
   res.status(202).json({ data: result });
 }
 
