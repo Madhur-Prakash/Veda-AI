@@ -34,7 +34,7 @@ export async function refresh(req: Request, res: Response) {
   if (!token) return res.status(401).json({ error: { message: 'No refresh token', statusCode: 401 } });
   const result = await authService.refresh(token);
   res.cookie('accessToken', result.accessToken, ACCESS_COOKIE_OPTS);
-  res.json({ data: { user: result.user } });
+  res.json({ data: { accessToken: result.accessToken } });
 }
 
 export async function logout(req: Request, res: Response) {
@@ -56,6 +56,9 @@ export async function updateMe(req: Request, res: Response) {
   const user = (req as Request & { user?: { userId: string } }).user;
   if (!user) return res.status(401).json({ error: { message: 'Unauthorized', statusCode: 401 } });
   const { name, school } = req.body as { name?: string; school?: string };
-  const updated = await authService.updateProfile(user.userId, { name, school });
+  const updateData: { name?: string; school?: string } = {};
+  if (name !== undefined) updateData.name = name;
+  if (school !== undefined) updateData.school = school;
+  const updated = await authService.updateProfile(user.userId, updateData);
   res.json({ data: updated });
 }

@@ -68,9 +68,9 @@ export class GroupService {
   async removePaper(externalId: string, teacherId: string, assignmentExternalId: string) {
     const group = await GroupModel.findOne({ externalId, teacherId });
     if (!group) throw new HttpError(404, 'Group not found');
-    group.assignedPapers = group.assignedPapers.filter(
+    group.assignedPapers = (group.assignedPapers.filter(
       (p) => p.assignmentExternalId !== assignmentExternalId
-    );
+    ) as unknown) as any;
     await group.save();
     return group.toObject();
   }
