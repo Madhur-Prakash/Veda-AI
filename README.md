@@ -26,7 +26,7 @@ AI-powered assessment generation platform for teachers. Describe your assignment
 
 | Phase   | Frontend            | Backend                                                                  | Reason for change                                                   |
 | ------- | ------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Initial | AWS (EC2 / Amplify) | AWS (EC2)                                                                | Better performance and infrastructure during initial deployment     |
+| Initial | AWS (EC2) | AWS (EC2)                                                                | Better performance and infrastructure during initial deployment     |
 | Current | **Vercel**          | **Render (Free Tier)** with fallback to local server via **zrok tunnel** | Switched due to AWS resource limitations and AWS credit/cost issues |
 
 ---
