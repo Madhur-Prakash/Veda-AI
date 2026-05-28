@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   skipTrailingSlashRedirect: true,
-  devIndicators: false,
+  // devIndicators must be an object in Next.js config — using a minimal object to disable build activity
+  devIndicators: { buildActivity: false },
   async rewrites() {
     const backendApiUrl = (process.env.BACKEND_API_URL ?? 'http://localhost:4000').replace(/\/$/, '');
 

@@ -55,8 +55,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const { user, updateProfile, logout, isLoading, error, clearError } = useAuthStore();
 
-  const [name, setName] = useState('');
-  const [school, setSchool] = useState('');
+  const [name, setName] = useState(() => user?.name ?? '');
+  const [school, setSchool] = useState(() => user?.school ?? '');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   // Preferences (localStorage)
@@ -66,17 +66,24 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (user) {
+      // update local editable state only when user changes
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(user.name ?? '');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSchool(user.school ?? '');
     }
   }, [user]);
 
-  useEffect(() => {
-    const lang = localStorage.getItem('vedaai_default_language');
-    const dur = localStorage.getItem('vedaai_default_duration');
-    if (lang) setDefaultLanguage(lang);
-    if (dur) setDefaultDuration(Number(dur));
-  }, []);
+  // initialize defaults from localStorage once (client-only)
+  const [defaultLanguageInitialized] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const lang = localStorage.getItem('vedaai_default_language');
+      if (lang) setDefaultLanguage(lang);
+      const dur = localStorage.getItem('vedaai_default_duration');
+      if (dur && !isNaN(Number(dur))) setDefaultDuration(Number(dur));
+    }
+    return true;
+  });
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()

@@ -119,7 +119,7 @@ export default function LibraryPage() {
     }
   }
 
-  function useTemplate(templateId: string) {
+  function navigateToTemplate(templateId: string) {
     router.push(`/create-assignment?template=${templateId}`);
   }
 
@@ -332,8 +332,8 @@ export default function LibraryPage() {
                 <h3 className="mt-3 text-[16px] font-semibold text-[#1f1f1f]">{t.name}</h3>
                 <p className="mt-1 text-[13px] text-neutral-500">{t.desc}</p>
                 <span className="mt-3 inline-block rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] text-neutral-500">{t.subject}</span>
-                <button
-                  onClick={() => useTemplate(t.id)}
+                  <button
+                  onClick={() => navigateToTemplate(t.id)}
                   className="mt-4 w-full rounded-full bg-[#1f1f1f] py-2 text-[13px] font-semibold text-white opacity-0 group-hover:opacity-100 transition hover:bg-black"
                 >
                   Use Template

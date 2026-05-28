@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   School2, Plus, Users, BookOpen, Calendar, MoreHorizontal,
@@ -445,11 +445,9 @@ export default function GroupsPage() {
   }, []);
 
   // Keep viewingGroup in sync with store updates (e.g. after assignPaper)
-  useEffect(() => {
-    if (viewingGroup) {
-      const updated = groups.find((g) => g.externalId === viewingGroup.externalId);
-      if (updated) setViewingGroup(updated);
-    }
+  const derivedViewingGroup = useMemo(() => {
+    if (!viewingGroup) return null;
+    return groups.find((g) => g.externalId === viewingGroup.externalId) ?? viewingGroup;
   }, [groups, viewingGroup]);
 
   async function handleDelete(id: string) {
@@ -497,11 +495,11 @@ export default function GroupsPage() {
         )}
 
         {/* Detail view */}
-        {viewingGroup ? (
+        {derivedViewingGroup ? (
           <GroupDetail
-            group={viewingGroup}
+            group={derivedViewingGroup}
             onBack={() => setViewingGroup(null)}
-            onAssign={() => setAssigningGroup(viewingGroup)}
+            onAssign={() => setAssigningGroup(derivedViewingGroup)}
           />
         ) : (
           <div className="grid gap-6 lg:grid-cols-3">

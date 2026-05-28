@@ -30,8 +30,12 @@ export default function CreatePage() {
     [questionTypes]
   );
 
-  const updateType = (index: number, key: keyof QuestionType, delta: number) => {
-    setQuestionTypes((current) => current.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: Math.max(1, item[key] + delta) } : item)));
+  const updateType = (index: number, key: 'count' | 'marks', delta: number) => {
+    setQuestionTypes((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [key]: Math.max(1, (item[key] as number) + delta) } : item
+      )
+    );
   };
 
   return (

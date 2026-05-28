@@ -102,39 +102,41 @@ export default function CreateAssignmentPage() {
   const { createAssignment, error } = useAssignmentStore();
   const { setQueued } = useGenerationStore();
 
-  const [form, setForm] = useState({
-    schoolName: 'Delhi Public School, Sector-4, Bokaro',
-    subject: '',
-    className: '',
-    topic: '',
-    dueDate: '',
-    durationMinutes: 60,
-    totalMarks: 50,
-    instructions: '',
-    language: 'English'
+  const [form, setForm] = useState(() => {
+    // derive initial values from localStorage and ?template= param (client-only)
+    let lang: string | null = null;
+    let dur: string | null = null;
+    let templateId: string | null = null;
+    if (typeof window !== 'undefined') {
+      lang = localStorage.getItem('vedaai_default_language');
+      dur = localStorage.getItem('vedaai_default_duration');
+      const params = new URLSearchParams(window.location.search);
+      templateId = params.get('template');
+    }
+    const preset = templateId && TEMPLATE_PRESETS[templateId] ? TEMPLATE_PRESETS[templateId] : null;
+    return {
+      schoolName: 'Delhi Public School, Sector-4, Bokaro',
+      subject: '',
+      className: '',
+      topic: '',
+      dueDate: '',
+      durationMinutes: preset ? preset.durationMinutes : (dur && !isNaN(Number(dur)) ? Number(dur) : 60),
+      totalMarks: preset ? preset.totalMarks : 50,
+      instructions: '',
+      language: lang ?? 'English'
+    };
   });
-  const [controls, setControls] = useState<QuestionControl[]>(DEFAULT_CONTROLS);
+  const [controls, setControls] = useState<QuestionControl[]>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const templateId = params.get('template');
+      if (templateId && TEMPLATE_PRESETS[templateId]) return TEMPLATE_PRESETS[templateId].controls;
+    }
+    return DEFAULT_CONTROLS;
+  });
   const [dragOver, setDragOver] = useState(false);
 
-  // Seed defaults from Settings preferences once the component mounts on the client
-  useEffect(() => {
-    const lang = localStorage.getItem('vedaai_default_language');
-    const dur = localStorage.getItem('vedaai_default_duration');
-    setForm((f) => ({
-      ...f,
-      ...(lang ? { language: lang } : {}),
-      ...(dur && !isNaN(Number(dur)) ? { durationMinutes: Number(dur) } : {})
-    }));
-
-    // Apply template preset from ?template= URL param (set by Library → Use Template)
-    const params = new URLSearchParams(window.location.search);
-    const templateId = params.get('template');
-    if (templateId && TEMPLATE_PRESETS[templateId]) {
-      const preset = TEMPLATE_PRESETS[templateId];
-      setForm((f) => ({ ...f, totalMarks: preset.totalMarks, durationMinutes: preset.durationMinutes }));
-      setControls(preset.controls);
-    }
-  }, []);
+  // Initialization moved into useState initializers to avoid synchronous setState in effects
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});

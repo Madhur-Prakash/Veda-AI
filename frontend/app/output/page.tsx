@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Download, FileText, ClipboardList } from 'lucide-react';
@@ -9,8 +9,12 @@ import { Button } from '@/components/ui/button';
 import { useAssignmentStore } from '@/store/assignmentStore';
 
 export default function OutputPage() {
+  return <Suspense><OutputPageInner /></Suspense>;
+}
+
+function OutputPageInner() {
   const searchParams = useSearchParams();
-  const assignmentId = searchParams.get('id') ?? '';
+  const assignmentId = searchParams?.get('id') ?? '';
   const { currentAssignment, fetchAssignment, isLoading } = useAssignmentStore();
   const [isDownloading, setIsDownloading] = useState(false);
 
