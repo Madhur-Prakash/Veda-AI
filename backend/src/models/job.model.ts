@@ -6,7 +6,9 @@ const jobSchema = new Schema(
     assignmentExternalId: { type: String, required: true, index: true },
     state: { type: String, required: true },
     progress: { type: Number, required: true, default: 0, min: 0, max: 100 },
-    message: { type: String, default: '' }
+    message: { type: String, default: '' },
+    retryCount: { type: Number, default: 0, min: 0 },
+    fallbackUsed: { type: Boolean, default: false }
   },
   { timestamps: true, versionKey: false }
 );
