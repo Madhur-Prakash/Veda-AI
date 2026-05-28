@@ -1,6 +1,12 @@
 # API Reference
 
-Base URL: `http://localhost:4000/api/v1`
+## Base URLs
+
+| Environment | URL |
+|---|---|
+| Local dev | `http://localhost:4000/api/v1` |
+| Production (Render) | `https://your-backend.onrender.com/api/v1` |
+| Fallback (zrok tunnel) | `https://vediaai.share.zrok.io/api/v1` |
 
 ## Request Format
 
@@ -353,12 +359,20 @@ The PDF contains:
 
 ## WebSocket API
 
-Connect to `http://localhost:4000` using Socket.IO client v4.
+Connect using Socket.IO client v4. Use the appropriate base URL for your environment:
+
+| Environment | URL |
+|---|---|
+| Local dev | `http://localhost:4000` |
+| Production (Render) | `https://your-backend.onrender.com` |
+| Fallback (zrok tunnel) | `https://vediaai.share.zrok.io` |
 
 ```js
 import { io } from 'socket.io-client';
-const socket = io('http://localhost:4000', { withCredentials: true });
+const socket = io('https://your-backend.onrender.com', { withCredentials: true });
 ```
+
+> When the frontend is on Vercel and `NEXT_PUBLIC_SOCKET_URL` is not set to a public URL, socket traffic is automatically proxied through the Next.js `/socket.io` rewrite to avoid CORS issues.
 
 ### Client → Server Events
 

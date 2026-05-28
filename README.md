@@ -4,6 +4,33 @@ AI-powered assessment generation platform for teachers. Describe your assignment
 
 ---
 
+## 🚀 Live Deployments
+
+|                                | URL                                  | Notes                              |
+| ------------------------------ | ------------------------------------ | ---------------------------------- |
+| **Frontend (Vercel)**          | **https://veda-ai-amber.vercel.app** | Primary live deployment            |
+| **Local Server (zrok tunnel)** | https://vediaai.share.zrok.io        | Always running fallback deployment |
+
+> **Recommended:** Use the Vercel deployment for the best overall experience.
+> If the Vercel + Render deployment takes time to respond (especially when the Render backend wakes from inactivity), use the zrok tunnel instead.
+
+### Important Notes
+
+* The backend is currently hosted on **Render Free Tier**, which may spin down after inactivity. The first request can sometimes take around **20–30 seconds** to wake the backend.
+* The **zrok tunnel deployment is always running locally** and can be used as a fallback during Render cold starts.
+* Since the zrok deployment runs on a **local machine with limited hardware resources**, some requests may still take additional time for compilation or processing.
+* During earlier deployment phases on AWS, response times were significantly faster and more stable due to better infrastructure resources.
+* The AWS deployment was later taken down because of **limited server resources** and **AWS credit limitations/cost issues**.
+
+### Deployment History
+
+| Phase   | Frontend            | Backend                                                                  | Reason for change                                                   |
+| ------- | ------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Initial | AWS (EC2 / Amplify) | AWS (EC2)                                                                | Better performance and infrastructure during initial deployment     |
+| Current | **Vercel**          | **Render (Free Tier)** with fallback to local server via **zrok tunnel** | Switched due to AWS resource limitations and AWS credit/cost issues |
+
+---
+
 ## Documentation
 
 | | |
@@ -13,7 +40,7 @@ AI-powered assessment generation platform for teachers. Describe your assignment
 | [API Reference](./docs/api-reference.md) | REST endpoints, WebSocket events, schemas, error codes |
 | [Tech Stack](./docs/tech-stack.md) | Every dependency and full backend-to-frontend data flow |
 | [Approach & Design](./docs/approach.md) | Design decisions, BullMQ rationale, Socket.IO strategy |
-| [Deployment Guide](./docs/deployment.md) | Docker, manual, Vercel+Railway, env vars, scaling |
+| [Deployment Guide](./docs/deployment.md) | Docker, manual, Vercel+Render, env vars, scaling |
 
 ---
 

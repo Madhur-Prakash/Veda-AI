@@ -51,16 +51,25 @@ QUEUE_PREFIX=vedaai
 
 The `QUEUE_PREFIX` is prepended to all BullMQ Redis keys (e.g. `vedaai:assignments`).
 
-### Frontend — `frontend/.env.local`
+### Frontend — `frontend/.env`
 
-Already present in the repo:
+Already present in the repo. For local dev:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+NEXT_PUBLIC_API_URL=/api/v1
 NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+BACKEND_API_URL=http://localhost:4000
 ```
 
-`NEXT_PUBLIC_SOCKET_URL` is used by the `useSocket` hook to connect Socket.IO.
+For production (Vercel), set these in the Vercel dashboard:
+
+```env
+NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/v1
+NEXT_PUBLIC_SOCKET_URL=https://your-backend.onrender.com
+BACKEND_API_URL=https://your-backend.onrender.com
+```
+
+> `NEXT_PUBLIC_SOCKET_URL` — if this is a localhost URL but the page is served from a public domain, the `useSocket` hook automatically routes socket traffic through the Next.js `/socket.io` proxy rewrite instead of connecting directly to localhost.
 
 ---
 

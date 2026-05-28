@@ -42,6 +42,9 @@ Multiple browser tabs or devices can watch the same assignment's progress. Rooms
 **Singleton socket on the frontend:**
 `getSocket()` returns a module-level singleton. This prevents creating a new connection on every component mount. The `useSocket` hook manages joining/leaving rooms and wiring/unwiring event listeners on mount/unmount.
 
+**Socket.IO and public deployments:**
+When the frontend is served from a public domain (Vercel, ngrok, zrok) but `NEXT_PUBLIC_SOCKET_URL` points to localhost, browsers block the connection due to loopback CORS restrictions. The `getSocket()` function detects this and automatically falls back to `window.location.origin`, routing socket traffic through the Next.js `/socket.io` rewrite proxy (defined in `next.config.mjs`). This means the browser only ever talks to the same origin — no CORS issue.
+
 ---
 
 ## Structured Prompt Engineering

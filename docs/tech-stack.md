@@ -52,6 +52,16 @@
 | Docker / Docker Compose | Local multi-service orchestration |
 | Node.js 20 | Runtime for both backend and frontend |
 
+## Hosting
+
+| Layer | Provider | URL |
+|---|---|---|
+| Frontend | Vercel | [https://veda-ai-amber.vercel.app](https://veda-ai-amber.vercel.app) |
+| Backend | Render (free tier) | auto-deploy from GitHub |
+| Local tunnel | zrok | [https://vediaai.share.zrok.io](https://vediaai.share.zrok.io) |
+
+The project was originally deployed on **AWS** but was migrated to Vercel + Render due to cost and resource constraints. The zrok tunnel is a local fallback for when the Render instance is cold.
+
 ---
 
 ## How Data Flows: Backend to Frontend
