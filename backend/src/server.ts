@@ -45,11 +45,17 @@ async function bootstrap() {
     console.log(`VedaAI backend listening on port ${port}`);
   });
 
-  void connectMongo().catch((error) => {
+  void connectMongo().then(() => {
+    console.log('Connected to MongoDB');
+  }).
+  catch((error) => {
     console.error('Mongo connection failed', error);
   });
 
-  void connectRedis().catch((error) => {
+  void connectRedis().then(() => {
+    console.log('Connected to Redis');
+  }).
+  catch((error) => {
     console.error('Redis connection failed', error);
   });
 
