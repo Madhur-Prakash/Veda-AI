@@ -31,6 +31,9 @@ app.use(requestLogger);
 app.get('/', (_req, res) => {
   res.json({ name: 'VedaAI Backend', version: '1.0.0' });
 });
+app.get('/health', (_req, res) => {
+  res.json({ ok: true, status: 'healthy' ,service: 'vedaai-backend' });
+});
 
 app.use('/api/v1', apiRouter);
 app.use(notFoundHandler);
